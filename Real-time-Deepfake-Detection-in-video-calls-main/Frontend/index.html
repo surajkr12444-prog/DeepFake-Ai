@@ -1080,7 +1080,7 @@
             <div class="voice-hero-content">
               <div class="voice-badge" style="color: #94a3b8;">⚙️ SECURITY & HARDWARE CONTROL</div>
               <h2>System Preferences & Security Architecture</h2>
-              <p>Configure detection sensitivity levels, active hardware interfaces, audio siren alerts, operator metadata, and audit log storage.</p>
+              <p>Configure detection sensitivity levels, active hardware interfaces, audio siren alerts, and operator forensic metadata.</p>
             </div>
             <div class="voice-model-badge" style="border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.1);">
               <span style="color: #94a3b8;">Configuration</span>
@@ -1088,7 +1088,7 @@
             </div>
           </div>
 
-          <!-- 4-Panel Neumorphic Settings Grid -->
+          <!-- 3-Panel Neumorphic Settings Grid -->
           <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 24px;">
 
             <!-- PANEL 1: AI Detection Rules & Thresholds -->
@@ -1224,64 +1224,12 @@
               </div>
             </div>
 
-            <!-- PANEL 4: Incident Data, Storage & Backend Core -->
-            <div class="glass-panel">
-              <div class="panel-title" style="margin-bottom: 18px;">
-                <span class="panel-title-icon">🔌</span>
-                Backend Core & Data Storage
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 14px;">
-                <div>
-                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Backend API Base URL</label>
-                  <div style="display: flex; gap: 10px;">
-                    <input type="text" id="settings-api-url" value="http://localhost:8050" style="flex: 1; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-family: var(--font-mono); font-size: 13px;" />
-                    <button class="panel-btn" id="settings-test-api-btn" style="padding: 9px 14px; font-size: 12px;">Ping Core</button>
-                  </div>
-                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">
-                    Default: <code style="color: var(--accent-purple);">http://localhost:8050</code>. Connected to PyTorch CRNN & OpenCV live forensic engine.
-                  </div>
-                </div>
+          </div>
 
-                <!-- Storage & Cache Stats -->
-                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
-                  <div>
-                    <div style="font-size: 12px; color: var(--text-muted);">Local Incident Storage:</div>
-                    <div style="font-size: 13px; font-weight: 700; color: inherit; margin-top: 2px;" id="settings-storage-stat">Forensic History: Ready</div>
-                  </div>
-                  <div style="display: flex; gap: 8px;">
-                    <button class="panel-btn panel-btn-outline" id="settings-export-json-btn" title="Export raw event telemetry" style="padding: 5px 10px; font-size: 11px;">📥 JSON</button>
-                    <button class="panel-btn panel-btn-outline" id="settings-clear-logs-btn" title="Purge event records" style="padding: 5px 10px; font-size: 11px; color: #ef4444;">🗑️ Clear</button>
-                  </div>
-                </div>
-
-                <!-- Neural Architecture Details -->
-                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15); font-size: 11.5px; display: flex; flex-direction: column; gap: 6px;">
-                  <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Voice Model Checkpoint:</span>
-                    <strong style="color: #10b981; font-family: var(--font-mono);">best_model10.pth (46.8 MB)</strong>
-                  </div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Neural Architecture:</span>
-                    <strong style="color: var(--accent-purple);">CRNN + Bi-GRU + Attention</strong>
-                  </div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Trainable Parameters:</span>
-                    <strong style="color: inherit; font-family: var(--font-mono);">11,699,714 Parameters</strong>
-                  </div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Liveness & Texture:</span>
-                    <strong style="color: var(--accent-cyan);">2D FFT + Laplacian + Seams</strong>
-                  </div>
-                </div>
-
-                <!-- Save & Reset Action Buttons -->
-                <div style="display: flex; gap: 12px; margin-top: 4px;">
-                  <button class="panel-btn" id="settings-save-btn" style="flex: 1; justify-content: center;">💾 Save Changes</button>
-                  <button class="panel-btn panel-btn-outline" id="settings-reset-btn">↺ Reset</button>
-                </div>
-              </div>
-            </div>
-
+          <!-- Universal Settings Save & Reset Actions Bar -->
+          <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px;">
+            <button class="panel-btn panel-btn-outline" id="settings-reset-btn" style="padding: 10px 20px;">↺ Reset to Defaults</button>
+            <button class="panel-btn" id="settings-save-btn" style="padding: 10px 24px; font-weight: 600;">💾 Save Changes</button>
           </div>
         </div>
 

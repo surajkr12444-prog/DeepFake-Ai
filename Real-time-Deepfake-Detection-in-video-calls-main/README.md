@@ -149,10 +149,7 @@ flowchart TD
   * Audible siren volume slider ($10\% - 100\%$) with a **🔊 Test Siren Beep** preview button.
   * Desktop push notification permission manager and test trigger.
   * Configurable Security Officer / Analyst ID and Organization name injected into reports.
-* **Incident Data & Backend Core**:
-  * Configurable Backend API Base URL with interactive **Ping Core** latency tester.
-  * One-click **📥 Export Audit JSON** telemetry downloader and **🗑️ Clear History Cache** button.
-  * Model architecture inspector and **💾 Save All Changes** / **↺ Reset to Defaults** buttons.
+  * Universal **💾 Save Changes** & **↺ Reset to Defaults** controls bar with persistent `localStorage` synchronization.
 
 ---
 
