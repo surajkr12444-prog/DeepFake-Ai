@@ -921,6 +921,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (navReports) navReports.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('reports'); });
   if (navSettings) navSettings.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('settings'); });
 
+  // Prevent mousewheel from scrolling range sliders accidentally while scrolling page
+  document.querySelectorAll('input[type="range"].slider, input[type="range"]').forEach(slider => {
+    slider.addEventListener('wheel', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+  });
+
   // -------------------------------------------------------------------------
   // Feature A: Dedicated Analytics Chart Renderer
   // -------------------------------------------------------------------------
