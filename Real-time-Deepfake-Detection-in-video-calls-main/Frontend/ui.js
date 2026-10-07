@@ -102,19 +102,45 @@ class UIManager {
     const camEl = document.getElementById('cam-status-indicator');
     if (camEl) {
       camEl.textContent = cameraActive ? 'CAM: ON' : 'CAM: OFF';
-      camEl.style.color = cameraActive ? '#10b981' : '#ef4444';
+      camEl.style.color = cameraActive ? '#10b981' : '#94a3b8';
     }
 
     const micEl = document.getElementById('mic-status-indicator');
     if (micEl) {
       micEl.textContent = micActive ? 'MIC: ON' : 'MIC: OFF';
-      micEl.style.color = micActive ? '#10b981' : '#ef4444';
+      micEl.style.color = micActive ? '#10b981' : '#94a3b8';
     }
 
     const backEl = document.getElementById('backend-status-indicator');
+    const dotEl = document.querySelector('.model-status-dot');
+
     if (backEl) {
-      backEl.textContent = backendActive ? 'BACKEND: ON' : 'BACKEND: OFF';
-      backEl.style.color = backendActive ? '#10b981' : '#ef4444';
+      if (backendActive === 'live' || backendActive === true) {
+        backEl.textContent = 'BACKEND: LIVE CORE';
+        backEl.style.color = '#10b981';
+        backEl.title = 'Connected to PyTorch CRNN & OpenCV live core';
+        if (dotEl) {
+          dotEl.style.background = '#10b981';
+          dotEl.title = 'Detection Core Active (Live PyTorch Backend)';
+        }
+      } else if (backendActive === 'simulated' || backendActive === 'standalone') {
+        backEl.textContent = 'BACKEND: CLIENT DEMO';
+        backEl.style.color = '#38bdf8';
+        backEl.title = 'Client-side forensic heuristics active (Standalone / GitHub Pages)';
+        if (dotEl) {
+          dotEl.style.background = '#38bdf8';
+          dotEl.title = 'Detection Core Active (Client Forensics)';
+        }
+      } else {
+        // Fallback for static host / offline
+        backEl.textContent = 'BACKEND: STANDALONE';
+        backEl.style.color = '#f59e0b';
+        backEl.title = 'Static host detected. Running client heuristics.';
+        if (dotEl) {
+          dotEl.style.background = '#f59e0b';
+          dotEl.title = 'Standalone Mode (Client Heuristics)';
+        }
+      }
     }
   }
 

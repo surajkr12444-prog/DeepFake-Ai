@@ -256,15 +256,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   const uiManager = new UIManager(elements);
   const surveillanceController = new LiveSurveillanceController(uiManager);
 
-  // Sync Initial Backend Health
-  try {
-    const health = await ApiClient.checkHealth();
-    uiManager.updateHardwareBadges(false, false, true);
-    console.log('[App] Backend health check verified:', health);
-  } catch (e) {
-    uiManager.updateHardwareBadges(false, false, false);
-    console.warn('[App] Backend offline during initial check.');
+  // Sync Initial Backend Health & Establish Operational Mode
+  async function syncBackendHealth() {
+    try {
+      const health = await ApiClient.checkHealth();
+      if (health && (health.status === 'ok' || health.status === 'healthy')) {
+        Config.setActiveMode('LIVE');
+        uiManager.updateHardwareBadges(false, false, 'live');
+        console.log('[App] Connected to Live DeepShield Forensic Core:', health);
+        return true;
+      }
+    } catch (e) {
+      Config.setActiveMode('STANDALONE');
+      uiManager.updateHardwareBadges(false, false, 'simulated');
+      console.log('[App] Operating in Standalone / Client Forensics Mode (GitHub Pages / Local file).');
+      return false;
+    }
   }
+  await syncBackendHealth();
+
+  // Background auto-discovery: if user starts python backend later, upgrade automatically
+  setInterval(async () => {
+    if (Config.activeMode !== 'LIVE' && !surveillanceController.isActive) {
+      await syncBackendHealth();
+    }
+  }, 10000);
 
   // 8. Wire Start / Stop Live Surveillance Button
   if (elements.toggleDetectionBtn) {
@@ -740,6 +756,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsSaveBtn = document.getElementById('settings-save-btn');
   const settingsResetBtn = document.getElementById('settings-reset-btn');
 
+  if (settingsApiUrl) {
+    const saved = localStorage.getItem('deepshield_api_url');
+    settingsApiUrl.value = saved || Config.API_BASE || 'http://localhost:8050';
+  }
+
   function syncSettingsUI() {
     const currentVal = elements.thresholdSlider ? elements.thresholdSlider.value : 60;
     if (settingsSlider) settingsSlider.value = currentVal;
@@ -776,38 +797,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (settingsTestApiBtn) {
     settingsTestApiBtn.addEventListener('click', async () => {
       settingsTestApiBtn.textContent = 'Pinging...';
+      const targetUrl = (settingsApiUrl ? settingsApiUrl.value.trim() : '').replace(/\/+$/, '') || 'http://localhost:8050';
       const t0 = performance.now();
       try {
-        const res = await fetch(`${Config.API_BASE}/api/health`);
+        const res = await fetch(`${targetUrl}/api/health`, { method: 'GET' });
         const elapsed = Math.round(performance.now() - t0);
         if (res.ok) {
-          settingsTestApiBtn.textContent = `Ping Core`;
-          showToast(`✅ Backend Online: Healthy (${elapsed}ms latency)`, 'success');
+          settingsTestApiBtn.textContent = 'Ping Core';
+          Config.setApiBase(targetUrl);
+          await syncBackendHealth();
+          showToast(`✅ DeepShield Core Online: Connected (${elapsed}ms latency)`, 'success');
         } else {
-          settingsTestApiBtn.textContent = `Ping Core`;
-          showToast(`⚠️ Server returned HTTP ${res.status}`, 'warning');
+          settingsTestApiBtn.textContent = 'Ping Core';
+          showToast(`⚠️ Server replied HTTP ${res.status}. Check endpoint configuration.`, 'warning');
         }
       } catch (err) {
-        settingsTestApiBtn.textContent = `Ping Core`;
-        showToast(`❌ Connection Failed: ${err.message}`, 'warning');
+        settingsTestApiBtn.textContent = 'Ping Core';
+        showToast(`ℹ️ Backend offline at ${targetUrl}. Standalone Demo Mode active.`, 'info');
       }
     });
   }
 
   if (settingsSaveBtn) {
-    settingsSaveBtn.addEventListener('click', () => {
-      showToast('Security preferences & hardware profiles saved successfully', 'success');
+    settingsSaveBtn.addEventListener('click', async () => {
+      const targetUrl = (settingsApiUrl ? settingsApiUrl.value.trim() : '').replace(/\/+$/, '');
+      if (targetUrl) {
+        Config.setApiBase(targetUrl);
+      }
+      await syncBackendHealth();
+      showToast('💾 Security settings & API endpoint saved to localStorage', 'success');
     });
   }
 
   if (settingsResetBtn) {
-    settingsResetBtn.addEventListener('click', () => {
+    settingsResetBtn.addEventListener('click', async () => {
       if (settingsSlider) settingsSlider.value = 60;
       if (settingsDisplay) settingsDisplay.textContent = '60%';
       if (elements.thresholdSlider) elements.thresholdSlider.value = 60;
       if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = '60%';
       if (settingsStrict) settingsStrict.checked = true;
       if (settingsSiren) settingsSiren.checked = true;
+      if (settingsApiUrl) settingsApiUrl.value = 'http://localhost:8050';
+      Config.setApiBase(null);
+      await syncBackendHealth();
       showToast('Settings reset to system defaults', 'info');
     });
   }

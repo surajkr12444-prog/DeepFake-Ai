@@ -6,43 +6,87 @@ const Config = (() => {
   const isHttps = window.location.protocol === 'https:';
   const restProto = isHttps ? 'https:' : 'http:';
   const wsProto = isHttps ? 'wss:' : 'ws:';
+  const isGithubPages = window.location.hostname.endsWith('github.io');
+
+  // Check URL parameters first (?api= or ?backend=), then localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramApi = urlParams.get('api') || urlParams.get('backend');
+  const storedApi = localStorage.getItem('deepshield_api_url');
 
   let API_BASE = '';
   let WS_BASE = '';
+  let activeMode = 'STANDALONE'; // 'LIVE' | 'STANDALONE'
 
-  if (isFileProto) {
-    // When opened directly as a local file (file:///...)
-    API_BASE = 'http://localhost:8050';
-    WS_BASE = 'ws://localhost:8050';
-  } else if (window.location.port === '8050') {
-    // When served directly by the FastAPI backend on port 8050
-    API_BASE = '';
-    WS_BASE = `${wsProto}//${window.location.host}`;
-  } else {
-    // When served from Live Server (e.g. port 5500, 3000, 8080)
-    API_BASE = 'http://localhost:8050';
-    WS_BASE = 'ws://localhost:8050';
+  function deriveBases(customUrl) {
+    if (customUrl) {
+      API_BASE = customUrl.replace(/\/+$/, '');
+      const isCustomHttps = API_BASE.startsWith('https:');
+      const wsScheme = isCustomHttps ? 'wss:' : 'ws:';
+      WS_BASE = API_BASE.replace(/^https?:/, wsScheme);
+      return;
+    }
+
+    if (isFileProto) {
+      API_BASE = 'http://localhost:8050';
+      WS_BASE = 'ws://localhost:8050';
+    } else if (window.location.port === '8050') {
+      API_BASE = '';
+      WS_BASE = `${wsProto}//${window.location.host}`;
+    } else if (window.location.hostname.includes('.app.github.dev')) {
+      // GitHub Codespaces port forwarding pattern
+      const codespaceHost = window.location.hostname.replace(/-\d+\.app\.github\.dev/, '-8050.app.github.dev');
+      API_BASE = `https://${codespaceHost}`;
+      WS_BASE = `wss://${codespaceHost}`;
+    } else if (isGithubPages) {
+      // GitHub Pages static hosting: defaults to standalone, allows custom API
+      API_BASE = storedApi || 'http://localhost:8050';
+      WS_BASE = API_BASE.startsWith('https:') ? API_BASE.replace(/^https:/, 'wss:') : 'ws://localhost:8050';
+    } else {
+      API_BASE = 'http://localhost:8050';
+      WS_BASE = 'ws://localhost:8050';
+    }
   }
 
-  return {
-    API_BASE,
-    WS_BASE,
+  deriveBases(paramApi || storedApi);
+
+  const obj = {
+    get API_BASE() { return API_BASE; },
+    get WS_BASE() { return WS_BASE; },
+    get activeMode() { return activeMode; },
+    get isGithubPages() { return isGithubPages; },
+
+    setActiveMode(mode) {
+      activeMode = mode;
+      console.log(`[Config] Operating mode transitioned to: ${mode}`);
+    },
+
+    setApiBase(newUrl) {
+      if (newUrl) {
+        localStorage.setItem('deepshield_api_url', newUrl);
+        deriveBases(newUrl);
+      } else {
+        localStorage.removeItem('deepshield_api_url');
+        deriveBases(null);
+      }
+      console.log(`[Config] API_BASE reconfigured to: ${API_BASE}`);
+    },
 
     // Endpoints
-    ENDPOINTS: {
-      HEALTH: `${API_BASE}/api/health`,
-      SESSIONS: `${API_BASE}/api/sessions`,
-      STATUS: `${API_BASE}/api/status`,
-      STATS: `${API_BASE}/api/stats`,
-      LOGS: `${API_BASE}/api/logs`,
-      SETTINGS: `${API_BASE}/api/settings`,
-      ENROLL: `${API_BASE}/api/enroll`,
-      DETECT: `${API_BASE}/api/detect`,
-      VOICE_PREDICT: `${API_BASE}/api/voice/predict`,
-      EXPORT_CSV: `${API_BASE}/api/export_csv`,
-
-      REPORT: `${API_BASE}/api/report`,
-      WS_LIVE: (sessionId) => `${WS_BASE}/ws/live/${sessionId}`
+    get ENDPOINTS() {
+      return {
+        HEALTH: `${API_BASE}/api/health`,
+        SESSIONS: `${API_BASE}/api/sessions`,
+        STATUS: `${API_BASE}/api/status`,
+        STATS: `${API_BASE}/api/stats`,
+        LOGS: `${API_BASE}/api/logs`,
+        SETTINGS: `${API_BASE}/api/settings`,
+        ENROLL: `${API_BASE}/api/enroll`,
+        DETECT: `${API_BASE}/api/detect`,
+        VOICE_PREDICT: `${API_BASE}/api/voice/predict`,
+        EXPORT_CSV: `${API_BASE}/api/export_csv`,
+        REPORT: `${API_BASE}/api/report`,
+        WS_LIVE: (sessionId) => `${WS_BASE}/ws/live/${sessionId}`
+      };
     },
 
     // Streaming & Capture Profiles
@@ -67,11 +111,14 @@ const Config = (() => {
       DISCONNECTED: 'DISCONNECTED',
       CONNECTING: 'CONNECTING',
       LIVE: 'LIVE',
+      STANDALONE: 'STANDALONE',
       RECONNECTING: 'RECONNECTING',
       ERROR: 'ERROR',
       STOPPED: 'STOPPED'
     }
   };
+
+  return obj;
 })();
 
 // Convert browser WebM/Opus or any audio blob to 16kHz 16-bit Mono WAV PCM

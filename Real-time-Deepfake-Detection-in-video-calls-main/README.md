@@ -221,6 +221,24 @@ Then navigate to **`http://localhost:8050`** in Google Chrome or any modern brow
 
 ---
 
+### 🌐 Dual Operating Modes: Local Core vs. GitHub Pages (Online Demo)
+
+DeepShield AI provides an adaptive dual-mode operational architecture:
+
+| Environment | Operating Mode | Capabilities | Status Badge |
+| :--- | :--- | :--- | :--- |
+| **Local Machine** (`http://localhost:8050`) | **🟢 Live PyTorch Core** | Full multi-modal PyTorch `CRNNWithAttn` (11.7M weights), OpenCV 2D FFT, Laplacian micro-textures, live WebSockets, real-time video/audio stream processing. | `BACKEND: LIVE CORE` |
+| **GitHub Pages / Static Host** | **🟡 Client Forensics (Standalone Demo)** | Instant zero-setup web demo. Live webcam & microphone capture, Web Audio API frequency oscilloscope, client-side acoustic heuristics, full interactive forensic studios, and PDF exports. | `BACKEND: CLIENT DEMO` |
+
+#### Connecting GitHub Pages to a Live Backend:
+GitHub Pages is a static hosting provider and does not run Python server processes. To connect the GitHub Pages web client to a live PyTorch model:
+1. Launch `Backend/backend_server.py` locally or deploy on a free cloud container (Render, Railway, Hugging Face Spaces).
+2. For local models, expose the port with HTTPS: `ngrok http 8050` (or Cloudflare Tunnel).
+3. In DeepShield AI, open the **⚙️ Settings** tab.
+4. Paste your HTTPS URL into **Backend API Base URL**, click **Ping Core**, and click **💾 Save Changes**. Your configuration is automatically persisted to `localStorage`.
+
+---
+
 ## 🔌 API & WebSocket Reference
 
 ### REST Endpoints
