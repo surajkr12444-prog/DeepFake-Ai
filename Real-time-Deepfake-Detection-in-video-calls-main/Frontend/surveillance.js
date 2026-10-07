@@ -103,7 +103,7 @@ class LiveSurveillanceController {
     };
   }
 
-  async startSurveillance() {
+  async startSurveillance(isFileMode = false) {
     // Prevent duplicate stream starts if user clicks twice rapidly
     if (this.isActive || this.isStarting) {
       console.warn('[Surveillance] Start requested while already starting or running.');
@@ -130,10 +130,16 @@ class LiveSurveillanceController {
         throw new Error('Backend AI server is offline. Please launch backend on port 8050.');
       }
 
-      // 2. Request Camera & Microphone Permissions
-      const videoEl = this.ui.el.webcamVideo;
-      const mediaRes = await this.media.startCapture(videoEl);
-      this.ui.updateHardwareBadges(mediaRes.camera, mediaRes.microphone, true);
+      // 2. Request Camera & Microphone or Use Existing Video File
+      if (!isFileMode) {
+        const videoEl = this.ui.el.webcamVideo;
+        const mediaRes = await this.media.startCapture(videoEl);
+        this.ui.updateHardwareBadges(mediaRes.camera, mediaRes.microphone, true);
+      } else {
+        this.media.videoElement = this.ui.el.webcamVideo;
+        this.media.cameraActive = true;
+        this.ui.updateHardwareBadges(true, false, true);
+      }
 
       // Show video feed
       if (this.ui.el.videoPlaceholder) this.ui.el.videoPlaceholder.style.display = 'none';

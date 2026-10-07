@@ -311,13 +311,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 12. Test Video File Upload Button
   if (elements.videoFileInput) {
-    elements.videoFileInput.addEventListener('change', (e) => {
+    elements.videoFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
       showToast(`Loading test video file: ${file.name}...`, 'info');
       const videoUrl = URL.createObjectURL(file);
-      surveillanceController.stopSurveillance();
+      await surveillanceController.stopSurveillance();
 
       elements.webcamVideo.srcObject = null;
       elements.webcamVideo.src = videoUrl;
@@ -326,14 +326,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       elements.webcamVideo.playsInline = true;
       elements.feedStatus.textContent = `Test File: ${file.name.substring(0, 16)}`;
 
-      elements.webcamVideo.play().then(() => {
+      try {
+        await elements.webcamVideo.play();
         elements.webcamVideo.style.display = 'block';
         elements.overlayCanvas.style.display = 'block';
         elements.videoPlaceholder.style.display = 'none';
-        showToast('Playing synthetic video test file. Starting analysis...', 'success');
-      }).catch(err => {
+
+        // Connect WebSocket and run real AI forensics on video file
+        await surveillanceController.startSurveillance(true);
+        showToast('Running multi-cue AI forensics on video file...', 'success');
+      } catch (err) {
         showToast('Video playback error: ' + err.message, 'danger');
-      });
+      }
     });
   }
 
@@ -415,6 +419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 16. Section Switcher (Unified vs Dedicated Video vs Dedicated Voice)
   // =========================================================================
   const secUnified = document.getElementById('unified-surveillance-section');
+  const secVideo = document.getElementById('video-recognition-section');
   const secVoice = document.getElementById('voice-recognition-section');
   const btnSwitchUnified = document.getElementById('switch-unified');
   const btnSwitchVideo = document.getElementById('switch-video');
@@ -424,6 +429,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navVideo = document.getElementById('nav-video');
   const navVoice = document.getElementById('nav-voice');
   const navLive = document.getElementById('nav-live');
+  const navAnalytics = document.getElementById('nav-analytics');
+  const navHistory = document.getElementById('nav-history');
+  const navReports = document.getElementById('nav-reports');
+  const navSettings = document.getElementById('nav-settings');
 
   function setSectionMode(mode) {
     [btnSwitchUnified, btnSwitchVideo, btnSwitchVoice].forEach(b => b && b.classList.remove('active'));
@@ -431,23 +440,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (mode === 'voice') {
       if (secUnified) secUnified.style.display = 'none';
+      if (secVideo) secVideo.style.display = 'none';
       if (secVoice) secVoice.style.display = 'flex';
       if (btnSwitchVoice) btnSwitchVoice.classList.add('active');
       if (navVoice) navVoice.classList.add('active');
       showToast('Switched to Dedicated Voice Deepfake Recognition Studio', 'info');
+    } else if (mode === 'video') {
+      if (secUnified) secUnified.style.display = 'none';
+      if (secVoice) secVoice.style.display = 'none';
+      if (secVideo) secVideo.style.display = 'flex';
+      if (btnSwitchVideo) btnSwitchVideo.classList.add('active');
+      if (navVideo) navVideo.classList.add('active');
+      showToast('Switched to Dedicated Video Deepfake Recognition Studio', 'info');
     } else {
       if (secVoice) secVoice.style.display = 'none';
+      if (secVideo) secVideo.style.display = 'none';
       if (secUnified) secUnified.style.display = 'block';
-
-      if (mode === 'video') {
-        if (btnSwitchVideo) btnSwitchVideo.classList.add('active');
-        if (navVideo) navVideo.classList.add('active');
-        showToast('Switched to Dedicated Video Deepfake Recognition', 'info');
-      } else {
-        if (btnSwitchUnified) btnSwitchUnified.classList.add('active');
-        if (navDashboard) navDashboard.classList.add('active');
-        showToast('Switched to Unified Live Surveillance Operations', 'info');
-      }
+      if (btnSwitchUnified) btnSwitchUnified.classList.add('active');
+      if (navDashboard) navDashboard.classList.add('active');
+      showToast('Switched to All-in-One Live Surveillance Operations', 'info');
     }
   }
 
@@ -459,6 +470,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
   if (navVideo) navVideo.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('video'); });
   if (navVoice) navVoice.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('voice'); });
+
+  if (navAnalytics) {
+    navAnalytics.addEventListener('click', (e) => {
+      e.preventDefault();
+      setSectionMode('unified');
+      const analyticsEl = document.querySelector('.analytics-panel');
+      if (analyticsEl) analyticsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (navHistory) {
+    navHistory.addEventListener('click', (e) => {
+      e.preventDefault();
+      setSectionMode('unified');
+      const historyEl = document.querySelector('.history-panel');
+      if (historyEl) historyEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (navReports) {
+    navReports.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (elements.genReportBtn) elements.genReportBtn.click();
+    });
+  }
+
+  if (navSettings) {
+    navSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (elements.thresholdSlider) {
+        elements.thresholdSlider.focus();
+        showToast('Sensitivity threshold adjusted from Settings', 'info');
+      }
+    });
+  }
 
   // =========================================================================
   // 17. Dedicated Voice Studio: Live Mic & Audio Visualizer
@@ -539,7 +585,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       voiceMicRecorder.ondataavailable = async (e) => {
         if (e.data && e.data.size > 0 && isVoiceMicActive) {
           try {
-            const res = await ApiClient.predictVoiceFile(e.data, 'live_speech.webm');
+            const wavBlob = window.audioBlobToWav ? await window.audioBlobToWav(e.data) : e.data;
+            const res = await ApiClient.predictVoiceFile(wavBlob, 'live_speech.wav');
             updateVoiceMetricsUI(res);
           } catch (err) {
             console.warn('Voice live prediction error:', err);
@@ -773,6 +820,325 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (err) {
         showToast('Preset test error: ' + err.message, 'warning');
       }
+    });
+  }
+
+  // =========================================================================
+  // 19. Dedicated Video Recognition Studio Controller
+  // =========================================================================
+  const vrToggleBtn = document.getElementById('vr-toggle-btn');
+  const vrVideo = document.getElementById('vr-video');
+  const vrCanvas = document.getElementById('vr-canvas');
+  const vrPlaceholder = document.getElementById('vr-placeholder');
+  const vrRedAlertTag = document.getElementById('vr-red-alert-tag');
+  const vrFileInput = document.getElementById('vr-file-input');
+
+  const vrVerdictTitle = document.getElementById('vr-verdict-title');
+  const vrVerdictDesc = document.getElementById('vr-verdict-desc');
+  const vrScorePill = document.getElementById('vr-score-pill');
+  const vrVerdictIcon = document.getElementById('vr-verdict-icon');
+
+  const vrMFft = document.getElementById('vr-m-fft');
+  const vrbFft = document.getElementById('vrb-fft');
+  const vrMSkin = document.getElementById('vr-m-skin');
+  const vrbSkin = document.getElementById('vrb-skin');
+  const vrMSeam = document.getElementById('vr-m-seam');
+  const vrbSeam = document.getElementById('vrb-seam');
+  const vrMLive = document.getElementById('vr-m-live');
+  const vrbLive = document.getElementById('vrb-live');
+
+  const vrFileResult = document.getElementById('vr-file-result');
+  const vrResFilename = document.getElementById('vr-res-filename');
+  const vrResLabel = document.getElementById('vr-res-label');
+  const vrResAuth = document.getElementById('vr-res-auth');
+  const vrResRisk = document.getElementById('vr-res-risk');
+  const vrResReasons = document.getElementById('vr-res-reasons');
+
+  let isVrActive = false;
+  let vrStream = null;
+  let vrIntervalId = null;
+
+  function updateVideoMetricsUI(data) {
+    if (!data) return;
+    const isFake = Boolean(data.is_deepfake);
+    const auth = data.auth_score !== undefined ? data.auth_score : 90;
+    const risk = data.risk_score !== undefined ? data.risk_score : (100 - auth);
+
+    if (isFake) {
+      if (vrVerdictTitle) vrVerdictTitle.textContent = '🚨 RED CAUTION: Synthetic Face-Swap Detected!';
+      if (vrVerdictDesc) vrVerdictDesc.textContent = 'High-frequency 2D-FFT roll-off spikes, abnormal skin smoothness, or boundary seam disparity confirmed.';
+      if (vrScorePill) {
+        vrScorePill.textContent = `${risk}% THREAT`;
+        vrScorePill.style.background = 'rgba(239, 68, 68, 0.2)';
+        vrScorePill.style.color = '#ef4444';
+        vrScorePill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      }
+      if (vrVerdictIcon) vrVerdictIcon.textContent = '🚨';
+      if (vrRedAlertTag) vrRedAlertTag.style.display = 'block';
+      uiManager.playSiren();
+    } else {
+      if (vrVerdictTitle) vrVerdictTitle.textContent = '✓ Authentic Human Face Verified';
+      if (vrVerdictDesc) vrVerdictDesc.textContent = 'Natural micro-pore textures, consistent boundary illumination, and authentic 2D FFT frequency spectrum verified.';
+      if (vrScorePill) {
+        vrScorePill.textContent = `${auth}% AUTHENTIC`;
+        vrScorePill.style.background = 'rgba(16, 185, 129, 0.2)';
+        vrScorePill.style.color = '#10b981';
+        vrScorePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      }
+      if (vrVerdictIcon) vrVerdictIcon.textContent = '✅';
+      if (vrRedAlertTag) vrRedAlertTag.style.display = 'none';
+    }
+
+    const fft = data.fft !== undefined ? data.fft : (isFake ? 22 : 93);
+    const skin = data.skin !== undefined ? data.skin : (isFake ? 25 : 88);
+    const seam = data.seam !== undefined ? data.seam : (isFake ? 30 : 94);
+    const live = data.live !== undefined ? data.live : (isFake ? 35 : 92);
+
+    if (vrMFft) vrMFft.textContent = isFake ? `${fft}% (Anomalous)` : `${fft}% (Normal)`;
+    if (vrbFft) vrbFft.style.width = `${fft}%`;
+    if (vrMSkin) vrMSkin.textContent = isFake ? `${skin}% (Over-smoothed)` : `${skin}% (Natural Pores)`;
+    if (vrbSkin) vrbSkin.style.width = `${skin}%`;
+    if (vrMSeam) vrMSeam.textContent = isFake ? `${seam}% (Disparity Seams)` : `${seam}% (Seamless)`;
+    if (vrbSeam) vrbSeam.style.width = `${seam}%`;
+    if (vrMLive) vrMLive.textContent = isFake ? `${live}% (Low Motion)` : `${live}% (Natural Liveness)`;
+    if (vrbLive) vrbLive.style.width = `${live}%`;
+  }
+
+  async function startVrCapture() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (window.location.protocol === 'file:') {
+        showToast('Camera access is restricted on file:// URLs. Please open http://localhost:8050', 'warning');
+        return;
+      }
+      showToast('MediaDevices not supported in this browser context.', 'warning');
+      return;
+    }
+    try {
+      vrStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 360, facingMode: 'user' }
+      });
+      vrVideo.srcObject = vrStream;
+      vrVideo.style.display = 'block';
+      if (vrPlaceholder) vrPlaceholder.style.display = 'none';
+      await vrVideo.play();
+
+      isVrActive = true;
+      if (vrToggleBtn) {
+        vrToggleBtn.textContent = '⏹ Stop Video Scanner';
+        vrToggleBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+      }
+
+      // Interval to grab frame and send to /api/detect
+      const captureCanvas = document.createElement('canvas');
+      captureCanvas.width = 640;
+      captureCanvas.height = 360;
+      const ctx = captureCanvas.getContext('2d');
+
+      vrIntervalId = setInterval(async () => {
+        if (!isVrActive || vrVideo.videoWidth === 0) return;
+        ctx.drawImage(vrVideo, 0, 0, 640, 360);
+        const b64 = captureCanvas.toDataURL('image/jpeg', 0.75);
+        try {
+          const res = await ApiClient.detectSingleFrame(b64, 0.60);
+          updateVideoMetricsUI({
+            is_deepfake: res.is_deepfake,
+            auth_score: Math.round(res.confidence * 100),
+            risk_score: Math.round((1 - res.confidence) * 100),
+            fft: Math.round(res.fft_score * 100),
+            skin: Math.round(res.texture_score * 100),
+            seam: Math.round(res.seam_score * 100),
+            live: Math.round(res.liveness_score * 100)
+          });
+        } catch (err) {
+          console.warn('[VideoStudio] Frame detection error:', err);
+        }
+      }, 800);
+
+      showToast('Live video forensics scanner active', 'success');
+    } catch (err) {
+      showToast('Camera access denied: ' + err.message, 'warning');
+      stopVrCapture();
+    }
+  }
+
+  function stopVrCapture() {
+    isVrActive = false;
+    if (vrIntervalId) {
+      clearInterval(vrIntervalId);
+      vrIntervalId = null;
+    }
+    if (vrStream) {
+      vrStream.getTracks().forEach(t => t.stop());
+      vrStream = null;
+    }
+    if (vrVideo) {
+      vrVideo.pause();
+      vrVideo.srcObject = null;
+      vrVideo.style.display = 'none';
+    }
+    if (vrPlaceholder) vrPlaceholder.style.display = 'flex';
+    if (vrRedAlertTag) vrRedAlertTag.style.display = 'none';
+    if (vrToggleBtn) {
+      vrToggleBtn.textContent = '▶ Start Video Scanner';
+      vrToggleBtn.style.background = '';
+    }
+  }
+
+  if (vrToggleBtn) {
+    vrToggleBtn.addEventListener('click', () => {
+      if (isVrActive) stopVrCapture();
+      else startVrCapture();
+    });
+  }
+
+  // Video File Upload in Dedicated Studio
+  if (vrFileInput) {
+    vrFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      showToast(`Loading video file: ${file.name}...`, 'info');
+      stopVrCapture();
+
+      const videoUrl = URL.createObjectURL(file);
+      vrVideo.srcObject = null;
+      vrVideo.src = videoUrl;
+      vrVideo.loop = true;
+      vrVideo.muted = true;
+      vrVideo.playsInline = true;
+
+      vrVideo.play().then(() => {
+        vrVideo.style.display = 'block';
+        if (vrPlaceholder) vrPlaceholder.style.display = 'none';
+        isVrActive = true;
+
+        if (vrFileResult) vrFileResult.style.display = 'block';
+        if (vrResFilename) vrResFilename.textContent = file.name;
+
+        // Perform frame analysis
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext('2d');
+
+        vrIntervalId = setInterval(async () => {
+          if (!isVrActive || vrVideo.videoWidth === 0) return;
+          ctx.drawImage(vrVideo, 0, 0, 640, 360);
+          const b64 = canvas.toDataURL('image/jpeg', 0.75);
+          try {
+            const res = await ApiClient.detectSingleFrame(b64, 0.60);
+            const isFake = Boolean(res.is_deepfake);
+            const authScore = Math.round(res.confidence * 100);
+            const riskScore = Math.round((1 - res.confidence) * 100);
+
+            if (vrResLabel) {
+              vrResLabel.textContent = isFake ? '🚨 Synthetic Manipulated Face' : '✓ Authentic Natural Face';
+              vrResLabel.style.color = isFake ? '#ef4444' : '#10b981';
+            }
+            if (vrResAuth) vrResAuth.textContent = `${authScore}%`;
+            if (vrResRisk) vrResRisk.textContent = `${riskScore}%`;
+            if (vrResReasons) {
+              vrResReasons.innerHTML = `
+                <div>• 2D FFT Anomaly: <strong>${Math.round(res.fft_score * 100)}%</strong></div>
+                <div>• Skin Texture Variance: <strong>${Math.round(res.texture_score * 100)}%</strong></div>
+                <div>• Boundary Seam Disparity: <strong>${Math.round(res.seam_score * 100)}%</strong></div>
+                <div>• Micro-Motion Liveness: <strong>${Math.round(res.liveness_score * 100)}%</strong></div>
+              `;
+            }
+
+            updateVideoMetricsUI({
+              is_deepfake: isFake,
+              auth_score: authScore,
+              risk_score: riskScore,
+              fft: Math.round(res.fft_score * 100),
+              skin: Math.round(res.texture_score * 100),
+              seam: Math.round(res.seam_score * 100),
+              live: Math.round(res.liveness_score * 100)
+            });
+          } catch (_) {}
+        }, 800);
+
+        showToast('Analyzing uploaded video with 2D FFT & biometric forensics...', 'success');
+      }).catch(err => {
+        showToast('Video playback failed: ' + err.message, 'danger');
+      });
+    });
+  }
+
+  // Video Presets
+  const presetRealVideo = document.getElementById('preset-real-video');
+  const presetFakeVideo = document.getElementById('preset-fake-video');
+  const presetReplayVideo = document.getElementById('preset-replay-video');
+
+  if (presetRealVideo) {
+    presetRealVideo.addEventListener('click', () => {
+      showToast('Executing preset: Authentic Natural Human Video', 'info');
+      if (vrFileResult) vrFileResult.style.display = 'block';
+      if (vrResFilename) vrResFilename.textContent = 'preset_authentic_human.mp4';
+      if (vrResLabel) {
+        vrResLabel.textContent = '✓ Authentic Natural Face Verified';
+        vrResLabel.style.color = '#10b981';
+      }
+      if (vrResAuth) vrResAuth.textContent = '93.5%';
+      if (vrResRisk) vrResRisk.textContent = '6.5%';
+      if (vrResReasons) {
+        vrResReasons.innerHTML = `
+          <div>• 2D FFT: <strong>94% (Natural high-frequency roll-off)</strong></div>
+          <div>• Skin Texture: <strong>91% (Micro-pores and skin biological texture verified)</strong></div>
+          <div>• Boundary Seam: <strong>97% (Uniform YCrCb perimeter color)</strong></div>
+          <div>• Micro-Motion: <strong>95% (Natural blink & micro-saccades confirmed)</strong></div>
+        `;
+      }
+      updateVideoMetricsUI({ is_deepfake: false, auth_score: 94, risk_score: 6, fft: 94, skin: 91, seam: 97, live: 95 });
+      showToast('Preset Authentic Video Verified', 'success');
+    });
+  }
+
+  if (presetFakeVideo) {
+    presetFakeVideo.addEventListener('click', () => {
+      showToast('Executing preset: AI Face-Swap Deepfake (GAN/Diffusion)', 'warning');
+      if (vrFileResult) vrFileResult.style.display = 'block';
+      if (vrResFilename) vrResFilename.textContent = 'preset_faceswap_deepfake.mp4';
+      if (vrResLabel) {
+        vrResLabel.textContent = '🚨 RED CAUTION: Synthetic Face-Swap Confirmed';
+        vrResLabel.style.color = '#ef4444';
+      }
+      if (vrResAuth) vrResAuth.textContent = '12.4%';
+      if (vrResRisk) vrResRisk.textContent = '87.6%';
+      if (vrResReasons) {
+        vrResReasons.innerHTML = `
+          <div>• 2D FFT: <strong>18% (Concentric periodic generator ring artifacts detected)</strong></div>
+          <div>• Skin Texture: <strong>22% (Severe synthetic over-smoothing & blur filter)</strong></div>
+          <div>• Boundary Seam: <strong>25% (Face-swap edge boundary disparity flagged)</strong></div>
+          <div>• Micro-Motion: <strong>30% (Unnatural rigid head orientation)</strong></div>
+        `;
+      }
+      updateVideoMetricsUI({ is_deepfake: true, auth_score: 12, risk_score: 88, fft: 18, skin: 22, seam: 25, live: 30 });
+      showToast('🚨 Red Alert Triggered: AI Deepfake Video Confirmed', 'warning');
+    });
+  }
+
+  if (presetReplayVideo) {
+    presetReplayVideo.addEventListener('click', () => {
+      showToast('Executing preset: Screen Replay / Photo Presentation Attack', 'warning');
+      if (vrFileResult) vrFileResult.style.display = 'block';
+      if (vrResFilename) vrResFilename.textContent = 'preset_screen_replay_spoof.mp4';
+      if (vrResLabel) {
+        vrResLabel.textContent = '⚠️ Static Photo / Screen Replay Attack';
+        vrResLabel.style.color = '#f59e0b';
+      }
+      if (vrResAuth) vrResAuth.textContent = '35.0%';
+      if (vrResRisk) vrResRisk.textContent = '65.0%';
+      if (vrResReasons) {
+        vrResReasons.innerHTML = `
+          <div>• 2D FFT: <strong>45% (Moiré pattern screen refresh lines detected)</strong></div>
+          <div>• Skin Texture: <strong>55% (Flat planar reflection)</strong></div>
+          <div>• Boundary Seam: <strong>60% (Fixed border)</strong></div>
+          <div>• Micro-Motion: <strong>8% (Zero physiological 3D motion / static attack)</strong></div>
+        `;
+      }
+      updateVideoMetricsUI({ is_deepfake: true, auth_score: 35, risk_score: 65, fft: 45, skin: 55, seam: 60, live: 8 });
+      showToast('⚠️ Screen Replay Spoofing Attack Flagged', 'warning');
     });
   }
 });

@@ -118,7 +118,8 @@ class MediaCaptureManager {
         this.mediaRecorder.ondataavailable = async (event) => {
           if (event.data && event.data.size > 0 && this.onAudioChunkCallback) {
             try {
-              const base64Audio = await this._blobToBase64(event.data);
+              const wavBlob = window.audioBlobToWav ? await window.audioBlobToWav(event.data) : event.data;
+              const base64Audio = await this._blobToBase64(wavBlob);
               this.onAudioChunkCallback(base64Audio);
             } catch (err) {
               console.warn('[MediaManager] Failed to encode audio chunk:', err);
