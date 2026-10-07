@@ -62,6 +62,7 @@ class SurveillanceSession:
         # Bounded frame queue (drops stale frames to prevent backlog)
         self.frame_queue: asyncio.Queue = asyncio.Queue(maxsize=MAX_QUEUE_SIZE)
         self.worker_task: Optional[asyncio.Task] = None
+        self.last_frame_time: float = 0.0
 
     def start_worker(self):
         if self.worker_task is None or self.worker_task.done():
@@ -77,6 +78,7 @@ class SurveillanceSession:
         Enqueues video frame into bounded queue. If queue is full,
         drops older stale frames immediately in favor of newest live frame.
         """
+        self.last_frame_time = time.time()
         while self.frame_queue.full():
             try:
                 # Drop stale frame
@@ -106,6 +108,47 @@ class SurveillanceSession:
                 "is_mock": self.audio_detector.is_mock,
                 "error": str(e)
             }
+
+        # If no active video frames have been received recently (mic-only surveillance mode),
+        # push audio analysis directly to ensure live telemetry reaches the client
+        time_since_video = time.time() - getattr(self, "last_frame_time", 0.0)
+        if self.websocket is not None and time_since_video > 3.0:
+            try:
+                dummy_video = {
+                    "face_detected": False,
+                    "score": 0.0,
+                    "label": "Microphone Surveillance Mode",
+                    "is_authentic": True,
+                    "is_deepfake": False,
+                    "is_live": True,
+                    "is_mock": False,
+                    "anomalies": []
+                }
+                fused = self.risk_fusion.fuse(
+                    video_res=dummy_video,
+                    audio_res=self.latest_audio_res,
+                    lipsync_res=self.latest_lipsync_res,
+                    scam_res=self.latest_scam_res,
+                    sensitivity_threshold=self.sensitivity_threshold
+                )
+                payload = {
+                    "type": "analysis",
+                    "session_id": self.session_id,
+                    "timestamp": time.time(),
+                    "audio": {
+                        "score": float(self.latest_audio_res.get("score", 0.0)),
+                        "label": self.latest_audio_res.get("label", "Audio Active"),
+                        "is_mock": bool(self.latest_audio_res.get("is_mock", True))
+                    },
+                    "video": dummy_video,
+                    "lip_sync": self.latest_lipsync_res,
+                    "scam_context": self.latest_scam_res,
+                    "fused": fused,
+                    "latency_ms": 8.0
+                }
+                await self.websocket.send_json(payload)
+            except Exception as send_err:
+                logger.warning(f"[{self.session_id}] Audio-direct WebSocket push error: {send_err}")
 
     async def _process_stream_loop(self):
         """

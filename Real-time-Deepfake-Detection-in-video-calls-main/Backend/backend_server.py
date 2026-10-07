@@ -87,7 +87,10 @@ if os.path.exists(FRONTEND_DIR):
     # Serve direct files from Frontend (e.g. style.css, script.js, config.js, etc.)
     @app.get("/{filename:path}")
     def serve_frontend_files(filename: str):
-        file_path = os.path.join(FRONTEND_DIR, filename)
+        file_path = os.path.abspath(os.path.join(FRONTEND_DIR, filename))
+        real_frontend_dir = os.path.abspath(FRONTEND_DIR)
+        if not file_path.startswith(real_frontend_dir):
+            raise HTTPException(status_code=403, detail="Access denied")
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return FileResponse(file_path)
         raise HTTPException(status_code=404, detail="Resource not found")
