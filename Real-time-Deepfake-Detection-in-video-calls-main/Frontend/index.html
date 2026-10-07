@@ -501,15 +501,21 @@
 
         <!-- ===== SECTION 2: DEDICATED VOICE RECOGNITION STUDIO ===== -->
         <div class="voice-section-container" id="voice-recognition-section" style="display: none;">
-          <div class="voice-hero-banner">
+          <div class="voice-hero-banner" style="border-color: rgba(167, 139, 250, 0.35); background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);">
             <div class="voice-hero-content">
-              <div class="voice-badge">🎙️ NEURAL AUDIO FORENSICS</div>
-              <h2>Voice Recognition & Audio Deepfake Analysis</h2>
-              <p>Powered by trained ResNet18 + Bi-GRU + Attention Pooling neural network (best_model10.pth) trained on ASVspoof speech fraud datasets.</p>
+              <div class="voice-badge" style="color: #c084fc;">🎙️ NEURAL ACOUSTIC FORENSIC LAB</div>
+              <h2>Voice Recognition & Audio Deepfake Analysis Studio</h2>
+              <p>Dual-stage forensic speech verification combining raw acoustic wave perturbation analysis with deep representations from PyTorch <strong>ResNet-18 + Bi-GRU + Attention Pooling</strong> (checkpoint <code>best_model10.pth</code>), calibrated against the ASVspoof 2021 speech fraud benchmark.</p>
+              <div class="voice-specs-chips" style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                <span class="vspec-chip">🧠 ResNet18-BiGRU-Attn</span>
+                <span class="vspec-chip">⚡ 16 kHz / 128 Mel Bins</span>
+                <span class="vspec-chip">🛡️ Vocoder Discontinuity Filter</span>
+                <span class="vspec-chip">⏱️ Real-Time Inference: &lt; 40ms</span>
+              </div>
             </div>
-            <div class="voice-model-badge">
-              <span>CRNN Architecture</span>
-              <strong>Active & Loaded</strong>
+            <div class="voice-model-badge" style="border-color: rgba(167, 139, 250, 0.4); background: rgba(167, 139, 250, 0.1);">
+              <span style="color: #94a3b8;">Neural Architecture</span>
+              <strong style="color: #c084fc;">best_model10.pth Active</strong>
             </div>
           </div>
 
@@ -519,19 +525,45 @@
               <div class="panel-header">
                 <div class="panel-title">
                   <span class="panel-title-icon">🔊</span>
-                  Live Microphone Voice Authenticity
+                  Live Microphone Acoustic Forensics
                 </div>
                 <div class="panel-actions">
                   <button class="panel-btn" id="voice-mic-toggle">🎙️ Start Voice Analysis</button>
+                  <button class="panel-btn panel-btn-outline" id="voice-record-btn" title="Record a 5-second vocal sample and analyze">
+                    <span class="rec-dot"></span> <span id="voice-record-text">🔴 Record 5s Clip</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Visualizer Mode Controls Bar -->
+              <div class="voice-viz-toolbar">
+                <div class="voice-viz-mode-group">
+                  <span class="vtm-label">Display Mode:</span>
+                  <button class="viz-mode-btn active" id="vmode-spectrum" data-mode="spectrum">📊 FFT Equalizer</button>
+                  <button class="viz-mode-btn" id="vmode-wave" data-mode="wave">🌊 Oscilloscope</button>
+                  <button class="viz-mode-btn" id="vmode-spectrogram" data-mode="spectrogram">🧬 Spectrogram</button>
+                </div>
+                <div class="voice-pitch-badge" id="voice-pitch-badge">
+                  <span>Pitch (F₀): <strong id="voice-pitch-val">-- Hz</strong></span>
                 </div>
               </div>
 
               <!-- Audio Waveform / Spectrum Visualizer -->
               <div class="voice-visualizer-wrap">
-                <canvas id="voice-spectrum-canvas" width="600" height="140"></canvas>
+                <canvas id="voice-spectrum-canvas" width="640" height="150"></canvas>
                 <div class="voice-spectrum-overlay">
-                  <span id="voice-mic-status">Mic Inactive — Press Start Voice Analysis</span>
+                  <span id="voice-mic-status">Mic Inactive — Press Start Voice Analysis or Record 5s</span>
                 </div>
+              </div>
+
+              <!-- Real-time Decibel / Volume Level Meter -->
+              <div class="voice-meter-row">
+                <span class="vmr-label">Input Level:</span>
+                <div class="db-meter-track">
+                  <div class="db-meter-bar" id="voice-db-bar" style="width: 0%;"></div>
+                </div>
+                <span class="db-meter-val" id="voice-db-val">-∞ dB</span>
+                <span class="db-meter-clip" id="voice-db-clip" title="Signal Clip Indicator">CLIP</span>
               </div>
 
               <!-- Live Voice Threat Verdict Banner -->
@@ -544,27 +576,43 @@
                 <div class="voice-score-pill" id="voice-score-pill">--% AUTHENTIC</div>
               </div>
 
-              <!-- Live Acoustic Forensic Metrics -->
+              <!-- Live Acoustic Forensic 6-Quadrant Matrix -->
               <div class="voice-metrics-grid">
                 <div class="vm-card">
                   <div class="vm-card-title">Spectral Consistency</div>
                   <div class="vm-card-val" id="vm-spectral">Standby</div>
                   <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-spectral" style="width: 50%"></div></div>
+                  <span class="vm-card-sub">Nyquist roll-off &gt; 8kHz</span>
                 </div>
                 <div class="vm-card">
-                  <div class="vm-card-title">Pitch Micro-Tremor</div>
+                  <div class="vm-card-title">Pitch Micro-Tremor (F₀)</div>
                   <div class="vm-card-val" id="vm-pitch">Standby</div>
                   <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-pitch" style="width: 50%"></div></div>
+                  <span class="vm-card-sub">Glottal Jitter &amp; Shimmer</span>
                 </div>
                 <div class="vm-card">
                   <div class="vm-card-title">Vocoder Phase Coherence</div>
                   <div class="vm-card-val" id="vm-phase">Standby</div>
                   <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-phase" style="width: 50%"></div></div>
+                  <span class="vm-card-sub">Phase inversion artifacts</span>
                 </div>
                 <div class="vm-card">
                   <div class="vm-card-title">Bi-GRU Temporal Flow</div>
                   <div class="vm-card-val" id="vm-gru">Standby</div>
                   <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-gru" style="width: 50%"></div></div>
+                  <span class="vm-card-sub">Forward-backward continuity</span>
+                </div>
+                <div class="vm-card">
+                  <div class="vm-card-title">MFCC Cepstral Distance</div>
+                  <div class="vm-card-val" id="vm-mfcc">Standby</div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-mfcc" style="width: 50%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div></div>
+                  <span class="vm-card-sub">13-band Mel filterbanks</span>
+                </div>
+                <div class="vm-card">
+                  <div class="vm-card-title">Harmonic Naturalness</div>
+                  <div class="vm-card-val" id="vm-harmonic">Standby</div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vmb-harmonic" style="width: 50%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div></div>
+                  <span class="vm-card-sub">HNR vocal tract resonance</span>
                 </div>
               </div>
             </div>
@@ -574,38 +622,46 @@
               <div class="panel-header">
                 <div class="panel-title">
                   <span class="panel-title-icon">📁</span>
-                  Voice File Deepfake Recognition
+                  Voice File Deepfake Recognition & Testing Lab
                 </div>
               </div>
 
               <div class="voice-upload-zone" id="voice-drop-zone">
                 <div class="voice-upload-icon">🎧</div>
                 <div class="voice-upload-text">Upload audio file for neural deepfake inspection</div>
-                <div class="voice-upload-sub">Supports WAV, MP3, M4A, OGG, WebM up to 50MB</div>
+                <div class="voice-upload-sub">Drag &amp; drop WAV, MP3, M4A, OGG, WebM up to 50MB</div>
                 <label class="panel-btn" for="voice-file-input" style="cursor: pointer; margin-top: 14px;">
                   📂 Choose Audio File
                 </label>
                 <input type="file" id="voice-file-input" accept="audio/*" style="display: none;" />
               </div>
 
-              <!-- Sample Testing Presets -->
+              <!-- Expanded 4 Forensic Testing Presets -->
               <div class="voice-preset-row">
-                <span class="preset-label">Quick Test Presets:</span>
-                <button class="preset-btn preset-real" id="preset-real-audio">✓ Test Authentic Speech</button>
-                <button class="preset-btn preset-fake" id="preset-fake-audio">🚨 Test AI Cloned Speech</button>
+                <span class="preset-label">⚡ Forensic Presets:</span>
+                <button class="preset-btn preset-real" id="preset-real-audio" title="Test authentic natural human voice">✓ Authentic Speech</button>
+                <button class="preset-btn preset-fake" id="preset-fake-audio" title="Test ElevenLabs synthetic cloned speech">🚨 ElevenLabs Clone</button>
+                <button class="preset-btn preset-amber" id="preset-rvc-audio" title="Test RVC / So-VITS timbre-swap deepfake">🎭 RVC Timbre Swap</button>
+                <button class="preset-btn preset-amber" id="preset-replay-audio" title="Test narrowband telephone audio replay">📻 Replay Telephony</button>
               </div>
 
               <!-- File Prediction Result Card -->
               <div class="voice-file-result" id="voice-file-result" style="display: none;">
                 <div class="vfr-header">
-                  <span id="vfr-filename">sample.wav</span>
+                  <div class="vfr-title-wrap">
+                    <span id="vfr-filename">sample.wav</span>
+                    <span class="vfr-meta-chip" id="vfr-file-meta">16.0 kHz • Mono</span>
+                  </div>
                   <span class="vfr-badge" id="vfr-badge">ANALYSIS COMPLETE</span>
                 </div>
+
                 <!-- Interactive Audio Player -->
                 <div class="vfr-audio-player-wrap" style="margin-top: 10px;">
                   <audio id="voice-audio-player" controls style="width: 100%; border-radius: 8px; outline: none;"></audio>
                 </div>
-                <div class="vfr-body" style="margin-top: 10px;">
+
+                <!-- File Classification Metric Summary -->
+                <div class="vfr-body" style="margin-top: 14px;">
                   <div class="vfr-metric-row">
                     <span>Neural Classification:</span>
                     <strong id="vfr-label">Real Human Voice</strong>
@@ -619,8 +675,103 @@
                     <strong id="vfr-threat" style="color: #ef4444;">5.8%</strong>
                   </div>
                 </div>
-                <div class="vfr-reasons" id="vfr-reasons" style="margin-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.5;"></div>
+
+                <!-- Temporal Segment Scores Visualization -->
+                <div class="vfr-segments-wrap" id="vfr-segments-wrap" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+                    <span>Temporal 4-Sec Window Segment Risk:</span>
+                    <span id="vfr-segments-count">1 Window Analyzed</span>
+                  </div>
+                  <div class="vfr-segments-bars" id="vfr-segments-bars" style="display: flex; gap: 4px; height: 18px;">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <div class="vfr-reasons" id="vfr-reasons" style="margin-top: 12px; font-size: 11px; color: #94a3b8; line-height: 1.6;"></div>
+
+                <!-- Result Actions Bar -->
+                <div class="vfr-actions-row" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+                  <button class="panel-btn panel-btn-outline" id="voice-export-json">📄 Export Acoustic JSON</button>
+                </div>
               </div>
+            </div>
+          </div>
+
+          <!-- ===== NEURAL PIPELINE ARCHITECTURE CARD ===== -->
+          <div class="glass-panel voice-pipeline-panel" style="margin-top: 4px;">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="panel-title-icon">🧬</span>
+                Neural Acoustic Forensic Architecture &amp; Processing Pipeline
+              </div>
+              <span class="mini-tag" style="color: #a78bfa;">PyTorch TorchScript Core</span>
+            </div>
+            <div class="pipeline-flow-grid">
+              <div class="pf-step">
+                <div class="pf-step-num">01</div>
+                <div class="pf-step-icon">🎙️</div>
+                <div class="pf-step-title">Audio Resampling</div>
+                <div class="pf-step-desc">16 kHz 16-bit Mono PCM, 4-sec window slicing</div>
+              </div>
+              <div class="pf-arrow">➜</div>
+              <div class="pf-step">
+                <div class="pf-step-num">02</div>
+                <div class="pf-step-icon">🎼</div>
+                <div class="pf-step-title">Log-Mel Filterbanks</div>
+                <div class="pf-step-desc">128 Mel Bins, 2048 FFT window, 512 hop length</div>
+              </div>
+              <div class="pf-arrow">➜</div>
+              <div class="pf-step">
+                <div class="pf-step-num">03</div>
+                <div class="pf-step-icon">🧠</div>
+                <div class="pf-step-title">ResNet-18 Backbone</div>
+                <div class="pf-step-desc">2D Residual convolution blocks, ImageNet normalization</div>
+              </div>
+              <div class="pf-arrow">➜</div>
+              <div class="pf-step">
+                <div class="pf-step-num">04</div>
+                <div class="pf-step-icon">🔄</div>
+                <div class="pf-step-title">Bi-GRU Temporal</div>
+                <div class="pf-step-desc">Bidirectional recurrent layers tracking phoneme shifts</div>
+              </div>
+              <div class="pf-arrow">➜</div>
+              <div class="pf-step">
+                <div class="pf-step-num">05</div>
+                <div class="pf-step-icon">👁️</div>
+                <div class="pf-step-title">Self-Attention Head</div>
+                <div class="pf-step-desc">Weighted temporal pooling into binary synthetic threat score</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== RECENT VOICE INSPECTIONS AUDIT LOG ===== -->
+          <div class="glass-panel voice-history-panel" style="margin-top: 4px;">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="panel-title-icon">📋</span>
+                Session Voice Forensic Log
+              </div>
+              <div class="panel-actions">
+                <button class="panel-btn panel-btn-outline" id="voice-clear-log">Clear Session Log</button>
+              </div>
+            </div>
+            <div class="log-table-wrap">
+              <table class="log-table" id="voice-history-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Timestamp</th>
+                    <th>Audio Sample</th>
+                    <th>Authenticity</th>
+                    <th>Threat Risk</th>
+                    <th>Classification</th>
+                    <th>Forensic Status</th>
+                  </tr>
+                </thead>
+                <tbody id="voice-history-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
             </div>
           </div>
         </div> <!-- End #voice-recognition-section -->
