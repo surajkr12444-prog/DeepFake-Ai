@@ -342,6 +342,7 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
   border-radius: var(--radius-md);
   padding: 14px 14px;
   margin-bottom: 12px;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .model-header {
@@ -357,6 +358,7 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
   color: var(--text-muted);
   letter-spacing: 0.8px;
   font-weight: 700;
+  transition: color 0.3s ease;
 }
 
 .model-status-dot {
@@ -372,6 +374,7 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
   font-weight: 700;
   color: #fff;
   margin-bottom: 4px;
+  transition: color 0.3s ease;
 }
 
 .model-meta {
@@ -440,6 +443,7 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
   border-radius: var(--radius-sm);
   box-shadow: var(--neu-shadow-raised-sm);
   border: var(--neu-border);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .user-avatar {
@@ -454,17 +458,20 @@ body.light-theme ::-webkit-scrollbar-thumb:hover {
   font-weight: 800;
   font-size: 13px;
   color: #fff;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .user-name {
   font-size: 13px;
   font-weight: 700;
   color: #fff;
+  transition: color 0.3s ease;
 }
 
 .user-role {
   font-size: 11px;
   color: var(--text-muted);
+  transition: color 0.3s ease;
 }
 
 /* ==========================================================================
@@ -3179,6 +3186,93 @@ body.light-theme .live-badge {
   color: #dc2626;
   border: 1px solid #fecaca;
   box-shadow: none;
+}
+
+/* Sidebar Detection Core Card in Daylight Mode */
+body.light-theme .sidebar-model-card {
+  background: linear-gradient(145deg, #f0f6fd, #e2ecf7);
+  box-shadow: 5px 5px 14px rgba(160, 178, 202, 0.55), -4px -4px 12px rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .model-label {
+  color: #64748b;
+  font-weight: 700;
+}
+
+body.light-theme .model-status-dot {
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+body.light-theme .model-name {
+  color: #0f172a;
+}
+
+body.light-theme .model-meta {
+  color: #475569;
+}
+
+body.light-theme .model-meta strong {
+  color: #0284c7;
+}
+
+body.light-theme .threshold-control label {
+  color: #475569;
+}
+
+body.light-theme .threshold-labels {
+  color: #64748b;
+}
+
+body.light-theme .slider {
+  background: #dce4f0;
+  border: 1px solid rgba(160, 178, 202, 0.6);
+  box-shadow: inset 2px 2px 5px rgba(160, 178, 202, 0.6), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+}
+
+body.light-theme .slider::-webkit-slider-thumb {
+  background: linear-gradient(145deg, #ffffff, #dce4f0);
+  border: 1px solid rgba(160, 178, 202, 0.8);
+  box-shadow: 2px 2px 6px rgba(160, 178, 202, 0.7), -2px -2px 6px #ffffff;
+}
+
+body.light-theme .slider::-moz-range-thumb {
+  background: linear-gradient(145deg, #ffffff, #dce4f0);
+  border: 1px solid rgba(160, 178, 202, 0.8);
+  box-shadow: 2px 2px 6px rgba(160, 178, 202, 0.7), -2px -2px 6px #ffffff;
+}
+
+body.light-theme .strict-mode-wrap {
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+body.light-theme .strict-mode-wrap label {
+  color: #dc2626 !important;
+}
+
+body.light-theme .strict-mode-wrap label:last-child {
+  color: #b91c1c !important;
+}
+
+/* Sidebar User Profile Card (Sumaira Ashfaque) in Daylight Mode */
+body.light-theme .user-card {
+  background: linear-gradient(145deg, #f0f6fd, #e2ecf7);
+  box-shadow: 4px 4px 12px rgba(160, 178, 202, 0.55), -3px -3px 10px rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .user-avatar {
+  background: linear-gradient(145deg, #7c3aed, #db2777);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+body.light-theme .user-name {
+  color: #0f172a;
+}
+
+body.light-theme .user-role {
+  color: #64748b;
 }
 
 /* Topbar in Daylight Mode */
