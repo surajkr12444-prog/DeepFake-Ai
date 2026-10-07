@@ -266,70 +266,113 @@
             <div class="panel-header">
               <div class="panel-title">
                 <span class="panel-title-icon">📈</span>
-                Real-Time Inference Analytics
+                <span>Real-Time Inference Analytics</span>
+              </div>
+              <div class="analytics-live-tag">
+                <span class="pulse-dot"></span>
+                <span>NEURAL FUSION CORE</span>
               </div>
             </div>
 
-            <!-- Status Banner -->
+            <!-- Master Holographic Forensic Verdict Card -->
             <div class="status-display" id="status-display">
-              <div class="status-icon-wrap authentic-bg" id="status-icon-wrap">
-                <span id="status-icon">✅</span>
+              <div class="verdict-gauge-wrap">
+                <div class="verdict-radial-ring">
+                  <svg class="radial-svg" viewBox="0 0 76 76">
+                    <circle class="radial-track" cx="38" cy="38" r="32"></circle>
+                    <circle class="radial-bar" id="radial-progress-bar" cx="38" cy="38" r="32" stroke-dasharray="201" stroke-dashoffset="26"></circle>
+                  </svg>
+                  <div class="radial-center-content">
+                    <span class="status-conf" id="status-conf">87%</span>
+                    <span class="radial-unit">AUTH</span>
+                  </div>
+                </div>
               </div>
               <div class="status-info">
-                <span class="status-label" id="status-label">Authentic</span>
-                <span class="status-sub" id="status-sub">Face verified — Natural biometric cues</span>
+                <div class="status-badge-row">
+                  <span class="status-pill-chip authentic-active" id="status-pill-chip">
+                    <span id="status-icon">✅</span>
+                    <span class="status-label" id="status-label">Authentic Human</span>
+                  </span>
+                  <span class="threat-index-pill" id="threat-index-pill">THREAT: 13.0%</span>
+                </div>
+                <span class="status-sub" id="status-sub">Face verified — Natural biological micro-textures</span>
               </div>
-              <div class="status-conf" id="status-conf">87%</div>
             </div>
 
-            <!-- Multi-Cue Metric Progress Bars -->
-            <div class="confidence-section">
-              <div class="conf-row">
-                <span>Overall Authenticity Score</span>
+            <!-- Master Overall Risk Fusion Well -->
+            <div class="master-fusion-well">
+              <div class="fusion-header">
+                <span class="fusion-title">Multi-Modal Threat Fusion Index</span>
                 <span class="conf-val" id="conf-val">87%</span>
               </div>
               <div class="conf-bar-wrap">
                 <div class="conf-bar" id="conf-bar" style="width: 87%"></div>
               </div>
+              <div class="fusion-meta-labels">
+                <span>0% Deepfake Threat</span>
+                <span>100% Authentic Human</span>
+              </div>
+            </div>
 
-              <div class="conf-row" style="margin-top: 10px">
-                <span>FFT Spectral Naturalness (Frequency Domain)</span>
-                <span class="conf-val" id="fft-val">91%</span>
-              </div>
-              <div class="conf-bar-wrap">
-                <div class="conf-bar fft-bar" id="fft-bar" style="width: 91%"></div>
-              </div>
-
-              <div class="conf-row" style="margin-top: 10px">
-                <span>Skin Texture Naturalness (Laplacian Filter)</span>
-                <span class="conf-val" id="texture-val">88%</span>
-              </div>
-              <div class="conf-bar-wrap">
-                <div class="conf-bar texture-bar" id="texture-bar" style="width: 88%"></div>
-              </div>
-
-              <div class="conf-row" style="margin-top: 10px">
-                <span>Boundary Seam Integrity (Mask Analysis)</span>
-                <span class="conf-val" id="seam-val">93%</span>
-              </div>
-              <div class="conf-bar-wrap">
-                <div class="conf-bar seam-bar" id="seam-bar" style="width: 93%"></div>
+            <!-- Multi-Cue 4-Quadrant Forensic Matrix -->
+            <div class="forensic-quad-grid">
+              <!-- Quad 1: 2D FFT -->
+              <div class="quad-card">
+                <div class="quad-card-header">
+                  <span class="quad-name">🌐 2D FFT Frequency</span>
+                  <span class="conf-val quad-val" id="fft-val">91%</span>
+                </div>
+                <div class="conf-bar-wrap quad-bar-wrap">
+                  <div class="conf-bar fft-bar" id="fft-bar" style="width: 91%"></div>
+                </div>
+                <span class="quad-sub">Spectral Roll-off</span>
               </div>
 
-              <div class="conf-row" style="margin-top: 10px">
-                <span>Liveness & Micro-motion Coherence</span>
-                <span class="conf-val" id="liveness-val">92%</span>
+              <!-- Quad 2: Skin Micro-Pores -->
+              <div class="quad-card">
+                <div class="quad-card-header">
+                  <span class="quad-name">🧬 Skin Micro-Pores</span>
+                  <span class="conf-val quad-val" id="texture-val">88%</span>
+                </div>
+                <div class="conf-bar-wrap quad-bar-wrap">
+                  <div class="conf-bar texture-bar" id="texture-bar" style="width: 88%"></div>
+                </div>
+                <span class="quad-sub">Laplacian Variance</span>
               </div>
-              <div class="conf-bar-wrap">
-                <div class="conf-bar liveness-bar" id="liveness-bar" style="width: 92%"></div>
+
+              <!-- Quad 3: Mask Perimeter Seam -->
+              <div class="quad-card">
+                <div class="quad-card-header">
+                  <span class="quad-name">📐 Perimeter Seam</span>
+                  <span class="conf-val quad-val" id="seam-val">93%</span>
+                </div>
+                <div class="conf-bar-wrap quad-bar-wrap">
+                  <div class="conf-bar seam-bar" id="seam-bar" style="width: 93%"></div>
+                </div>
+                <span class="quad-sub">Boundary Mask</span>
+              </div>
+
+              <!-- Quad 4: Liveness Coherence -->
+              <div class="quad-card">
+                <div class="quad-card-header">
+                  <span class="quad-name">⏱️ Saccades & Motion</span>
+                  <span class="conf-val quad-val" id="liveness-val">92%</span>
+                </div>
+                <div class="conf-bar-wrap quad-bar-wrap">
+                  <div class="conf-bar liveness-bar" id="liveness-bar" style="width: 92%"></div>
+                </div>
+                <span class="quad-sub">Physiological Motion</span>
               </div>
             </div>
 
             <!-- Real-time Line Graph -->
             <div class="mini-chart-section">
               <div class="mini-chart-header">
-                <span>Confidence Timeline</span>
-                <span class="mini-tag">Rolling 30 Frames</span>
+                <div class="mini-chart-title">
+                  <span>⚡ Forensic Confidence Timeline</span>
+                </div>
+                <span class="mini-tag">Rolling 30 Frames @ ~1.4 FPS</span>
               </div>
               <canvas id="mini-chart" height="75"></canvas>
             </div>
@@ -337,15 +380,15 @@
             <!-- Session Indicators -->
             <div class="session-info">
               <div class="si-item">
-                <span class="si-label">Session Start</span>
+                <span class="si-label">SESSION START</span>
                 <span class="si-val" id="session-start">--:--:--</span>
               </div>
               <div class="si-item">
-                <span class="si-label">Elapsed Time</span>
+                <span class="si-label">ELAPSED TIME</span>
                 <span class="si-val" id="session-dur">00:00</span>
               </div>
               <div class="si-item">
-                <span class="si-label">Alert Flags</span>
+                <span class="si-label">THREAT ALERTS</span>
                 <span class="si-val alert-val" id="session-alerts">0</span>
               </div>
             </div>

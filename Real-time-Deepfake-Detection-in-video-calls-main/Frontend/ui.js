@@ -159,18 +159,35 @@ class UIManager {
     const isCritical = (level === 'CRITICAL' || level === 'HIGH');
 
     // 2. Update Status Card
-    if (this.el.statusLabel) this.el.statusLabel.textContent = isCritical ? 'Synthetic Anomaly Detected' : 'Authentic';
+    if (this.el.statusLabel) this.el.statusLabel.textContent = isCritical ? 'Synthetic Anomaly Detected' : 'Authentic Human';
     if (this.el.statusSub) {
-      const reasonText = (f.reasons && f.reasons.length > 0) ? f.reasons[0] : 'Natural biometric parameters verified';
+      const reasonText = (f.reasons && f.reasons.length > 0) ? f.reasons[0] : 'Face verified — Natural biological micro-textures';
       this.el.statusSub.textContent = reasonText;
     }
     if (this.el.statusConf) this.el.statusConf.textContent = `${authScore}%`;
 
+    // Radial Progress Bar (circumference ~ 201)
+    if (this.el.radialProgressBar) {
+      const offset = Math.max(0, Math.min(201, Math.round(201 - (201 * authScore / 100))));
+      this.el.radialProgressBar.style.strokeDashoffset = offset;
+      this.el.radialProgressBar.style.stroke = isCritical ? 'var(--accent-crimson)' : 'var(--accent-emerald)';
+    }
+
+    // Status Pill Chip & Icon
+    if (this.el.statusPillChip) {
+      this.el.statusPillChip.className = isCritical ? 'status-pill-chip threat-active' : 'status-pill-chip authentic-active';
+    }
     if (this.el.statusIcon) {
       this.el.statusIcon.textContent = isCritical ? '⚠️' : '✅';
     }
     if (this.el.statusIconWrap) {
       this.el.statusIconWrap.className = isCritical ? 'status-icon-wrap suspicious-bg' : 'status-icon-wrap authentic-bg';
+    }
+
+    // Threat Index Pill
+    if (this.el.threatIndexPill) {
+      this.el.threatIndexPill.textContent = `THREAT: ${fusedScore.toFixed(1)}%`;
+      this.el.threatIndexPill.className = isCritical ? 'threat-index-pill threat-high' : 'threat-index-pill threat-low';
     }
 
     // 3. Update Multi-Cue Progress Bars
