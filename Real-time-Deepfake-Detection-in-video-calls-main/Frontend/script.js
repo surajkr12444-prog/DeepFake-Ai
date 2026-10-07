@@ -474,6 +474,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   ];
 
   function setSectionMode(mode) {
+    // Keep viewport firmly stationary at top (prevents upward jump)
+    window.scrollTo(0, 0);
+
     // Hide all view containers
     [secUnified, secVideo, secVoice, secAnalytics, secHistory, secReports, secSettings].forEach(s => {
       if (s) s.style.display = 'none';
