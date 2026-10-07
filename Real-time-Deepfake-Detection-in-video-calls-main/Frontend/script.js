@@ -461,14 +461,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const secReports = document.getElementById('reports-section');
   const secSettings = document.getElementById('settings-section');
 
-  const btnSwitchUnified = document.getElementById('switch-unified');
-  const btnSwitchVideo = document.getElementById('switch-video');
-  const btnSwitchVoice = document.getElementById('switch-voice');
-  const btnSwitchAnalytics = document.getElementById('switch-analytics');
-  const btnSwitchHistory = document.getElementById('switch-history');
-  const btnSwitchReports = document.getElementById('switch-reports');
-  const btnSwitchSettings = document.getElementById('switch-settings');
-
   const navDashboard = document.getElementById('nav-dashboard');
   const navVideo = document.getElementById('nav-video');
   const navVoice = document.getElementById('nav-voice');
@@ -479,14 +471,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navSettings = document.getElementById('nav-settings');
 
   const allSections = [
-    { key: 'unified', el: secUnified, navEl: navDashboard, switchEl: btnSwitchUnified, title: 'Live Surveillance' },
-    { key: 'live', el: secUnified, navEl: navLive, switchEl: btnSwitchUnified, title: 'Live Surveillance' },
-    { key: 'video', el: secVideo, navEl: navVideo, switchEl: btnSwitchVideo, title: 'Video Deepfake Recognition' },
-    { key: 'voice', el: secVoice, navEl: navVoice, switchEl: btnSwitchVoice, title: 'Voice Recognition (CRNN AI)' },
-    { key: 'analytics', el: secAnalytics, navEl: navAnalytics, switchEl: btnSwitchAnalytics, title: 'Analytics & Threat Telemetry' },
-    { key: 'history', el: secHistory, navEl: navHistory, switchEl: btnSwitchHistory, title: 'Inspection History Log' },
-    { key: 'reports', el: secReports, navEl: navReports, switchEl: btnSwitchReports, title: 'Forensic PDF Reports' },
-    { key: 'settings', el: secSettings, navEl: navSettings, switchEl: btnSwitchSettings, title: 'System Settings' }
+    { key: 'unified', el: secUnified, navEl: navDashboard, title: 'Live Surveillance' },
+    { key: 'live', el: secUnified, navEl: navDashboard, title: 'Live Surveillance' },
+    { key: 'video', el: secVideo, navEl: navVideo, title: 'Video Deepfake Recognition' },
+    { key: 'voice', el: secVoice, navEl: navVoice, title: 'Voice Recognition (CRNN AI)' },
+    { key: 'analytics', el: secAnalytics, navEl: navAnalytics, title: 'Analytics & Threat Telemetry' },
+    { key: 'history', el: secHistory, navEl: navHistory, title: 'Inspection History Log' },
+    { key: 'reports', el: secReports, navEl: navReports, title: 'Forensic PDF Reports' },
+    { key: 'settings', el: secSettings, navEl: navSettings, title: 'System Settings' }
   ];
 
   function setSectionMode(mode) {
@@ -498,8 +490,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (s) s.style.display = 'none';
     });
 
-    // Remove active styles from nav & switchers
-    document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
+    // Remove active styles from sidebar nav items
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
     const match = allSections.find(s => s.key === mode) || allSections[0];
@@ -509,7 +500,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       match.el.style.display = (match.key === 'unified' || match.key === 'live') ? 'block' : 'flex';
     }
     if (match.navEl) match.navEl.classList.add('active');
-    if (match.switchEl) match.switchEl.classList.add('active');
 
     // Breadcrumb update
     const bcActive = document.querySelector('.bc-active');
@@ -524,21 +514,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       syncSettingsUI();
     }
 
-    showToast(`Switched to: ${match.title}`, 'info');
+    showToast(`Navigated to: ${match.title}`, 'info');
   }
 
-  // Bind Section Switcher Buttons
-  if (btnSwitchUnified) btnSwitchUnified.addEventListener('click', () => setSectionMode('unified'));
-  if (btnSwitchVideo) btnSwitchVideo.addEventListener('click', () => setSectionMode('video'));
-  if (btnSwitchVoice) btnSwitchVoice.addEventListener('click', () => setSectionMode('voice'));
-  if (btnSwitchAnalytics) btnSwitchAnalytics.addEventListener('click', () => setSectionMode('analytics'));
-  if (btnSwitchHistory) btnSwitchHistory.addEventListener('click', () => setSectionMode('history'));
-  if (btnSwitchReports) btnSwitchReports.addEventListener('click', () => setSectionMode('reports'));
-  if (btnSwitchSettings) btnSwitchSettings.addEventListener('click', () => setSectionMode('settings'));
-
-  // Bind Sidebar Nav Links
+  // Bind Sidebar Nav Links (Single Master Controller)
   if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
-  if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('live'); });
+  if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
   if (navVideo) navVideo.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('video'); });
   if (navVoice) navVoice.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('voice'); });
   if (navAnalytics) navAnalytics.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('analytics'); });
