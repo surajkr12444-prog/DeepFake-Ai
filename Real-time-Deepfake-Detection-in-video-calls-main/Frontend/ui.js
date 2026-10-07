@@ -38,18 +38,44 @@ class UIManager {
         this.audioCtx.resume();
       }
       if (this.audioCtx) {
+        const volSetting = parseFloat(localStorage.getItem('deepshield_siren_volume') || '70') / 100.0;
+        const peakVol = Math.max(0.02, Math.min(0.5, volSetting * 0.25));
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(680, this.audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(880, this.audioCtx.currentTime + 0.3);
         osc.frequency.exponentialRampToValueAtTime(680, this.audioCtx.currentTime + 0.6);
-        gain.gain.setValueAtTime(0.15, this.audioCtx.currentTime);
+        gain.gain.setValueAtTime(peakVol, this.audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.7);
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
         osc.start();
         osc.stop(this.audioCtx.currentTime + 0.7);
+      }
+    } catch (_) {}
+  }
+
+  playTestSiren(volPercent = 70) {
+    try {
+      if (!this.audioCtx) this._initAudioSiren();
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+      if (this.audioCtx) {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        const vol = Math.max(0.02, Math.min(0.5, (volPercent / 100.0) * 0.25));
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(680, this.audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, this.audioCtx.currentTime + 0.25);
+        osc.frequency.exponentialRampToValueAtTime(680, this.audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.55);
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start();
+        osc.stop(this.audioCtx.currentTime + 0.55);
       }
     } catch (_) {}
   }

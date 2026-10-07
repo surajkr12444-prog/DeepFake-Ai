@@ -1058,7 +1058,7 @@
             <div class="voice-hero-content">
               <div class="voice-badge" style="color: #94a3b8;">⚙️ SECURITY & HARDWARE CONTROL</div>
               <h2>System Preferences & Security Architecture</h2>
-              <p>Configure detection sensitivity levels, active hardware interfaces, alerting sound sirens, and neural backend connection status.</p>
+              <p>Configure detection sensitivity levels, active hardware interfaces, audio siren alerts, operator metadata, and audit log storage.</p>
             </div>
             <div class="voice-model-badge" style="border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.1);">
               <span style="color: #94a3b8;">Configuration</span>
@@ -1066,7 +1066,10 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- 4-Panel Neumorphic Settings Grid -->
+          <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 24px;">
+
+            <!-- PANEL 1: AI Detection Rules & Thresholds -->
             <div class="glass-panel">
               <div class="panel-title" style="margin-bottom: 18px;">
                 <span class="panel-title-icon">🛡️</span>
@@ -1075,7 +1078,7 @@
               <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                   <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <label style="font-size: 13px; font-weight: 600; color: #fff;">Surveillance Alert Threshold</label>
+                    <label style="font-size: 13px; font-weight: 600; color: inherit;">Surveillance Alert Threshold</label>
                     <strong id="settings-threshold-display" style="color: var(--accent-cyan); font-family: var(--font-mono);">60%</strong>
                   </div>
                   <input type="range" id="settings-threshold-slider" min="40" max="90" value="60" class="slider" />
@@ -1085,16 +1088,26 @@
                   </div>
                 </div>
 
-                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 14px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(0,0,0,0.4);">
-                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Analysis Inference Frequency</label>
+                  <select id="settings-fps-select" class="settings-select" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;">
+                    <option value="5">5 FPS — Eco Mode (Low CPU / Battery Saver)</option>
+                    <option value="10">10 FPS — Balanced (Standard Laptop)</option>
+                    <option value="15" selected>15 FPS — Responsive (Recommended)</option>
+                    <option value="25">25 FPS — High-Fidelity (Workstation / GPU)</option>
+                  </select>
+                </div>
+
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 14px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(0,0,0,0.15);">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: inherit;">
                     <input type="checkbox" id="settings-strict-mode" checked style="accent-color: #ef4444;" />
                     <span>Strict AI Deepfake Filter (Enhanced Sensitivity)</span>
                   </label>
-                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: inherit;">
                     <input type="checkbox" id="settings-siren-toggle" checked style="accent-color: #ef4444;" />
                     <span>🚨 Audible Siren on Critical Threat Trigger</span>
                   </label>
-                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: inherit;">
                     <input type="checkbox" id="settings-auto-snap" checked style="accent-color: #06b6d4;" />
                     <span>Auto-Snapshot Flagged Threat Frames</span>
                   </label>
@@ -1102,48 +1115,151 @@
               </div>
             </div>
 
+            <!-- PANEL 2: Hardware Devices & Audio/Video Inputs -->
+            <div class="glass-panel">
+              <div class="panel-title" style="margin-bottom: 18px;">
+                <span class="panel-title-icon">🎙️</span>
+                Hardware Devices & Media Input
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 12px; color: var(--text-muted);">Active Camera Input</label>
+                    <button class="panel-btn panel-btn-outline" id="settings-refresh-devices-btn" style="padding: 3px 8px; font-size: 11px;">🔄 Scan Devices</button>
+                  </div>
+                  <select id="settings-camera-select" class="settings-select" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;">
+                    <option value="default">Default System Webcam</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Active Microphone Input</label>
+                  <select id="settings-mic-select" class="settings-select" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;">
+                    <option value="default">Default System Microphone</option>
+                  </select>
+                </div>
+
+                <!-- Live Mic Meter & Test -->
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">Microphone Level Meter</span>
+                    <button class="panel-btn panel-btn-outline" id="settings-test-mic-btn" style="padding: 4px 10px; font-size: 11px;">🎙️ Test Mic</button>
+                  </div>
+                  <div style="height: 10px; background: rgba(0,0,0,0.25); border-radius: 6px; overflow: hidden; position: relative;">
+                    <div id="settings-mic-meter-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #38bdf8 70%, #ef4444 100%); transition: width 0.08s ease; border-radius: 6px;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Surveillance Stream Resolution</label>
+                  <select id="settings-resolution-select" class="settings-select" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;">
+                    <option value="640x360" selected>640 x 360 (Fast AI Inference - Recommended)</option>
+                    <option value="1280x720">1280 x 720 (HD 720p)</option>
+                    <option value="1920x1080">1920 x 1080 (Full HD 1080p)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- PANEL 3: Alerts, Audio & Audit Metadata -->
+            <div class="glass-panel">
+              <div class="panel-title" style="margin-bottom: 18px;">
+                <span class="panel-title-icon">🔔</span>
+                Alerts & Forensic Audit Metadata
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Siren Volume Control -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 12px; color: var(--text-muted);">Audible Siren Volume</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <strong id="settings-siren-vol-display" style="color: var(--accent-cyan); font-family: var(--font-mono); font-size: 12px;">70%</strong>
+                      <button class="panel-btn panel-btn-outline" id="settings-test-siren-btn" style="padding: 3px 8px; font-size: 11px;">🔊 Test Siren</button>
+                    </div>
+                  </div>
+                  <input type="range" id="settings-siren-volume" min="10" max="100" value="70" class="slider" />
+                </div>
+
+                <!-- Desktop Notifications -->
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 12.5px; font-weight: 600; color: inherit;">Desktop Push Notifications</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="settings-notif-status">Status: Click to request permission</div>
+                  </div>
+                  <button class="panel-btn" id="settings-req-notif-btn" style="padding: 6px 12px; font-size: 11.5px;">🔔 Request</button>
+                </div>
+
+                <!-- Operator Name & Lab Title -->
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Security Officer / Analyst Name</label>
+                  <input type="text" id="settings-operator-name" value="Security Officer #4092" placeholder="e.g. Officer John Doe" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;" />
+                </div>
+
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Organization / Forensic Unit</label>
+                  <input type="text" id="settings-org-name" value="DeepShield Cyber Intelligence Lab" placeholder="e.g. Cyber Crime Unit" style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-size: 13px;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PANEL 4: Incident Data, Storage & Backend Core -->
             <div class="glass-panel">
               <div class="panel-title" style="margin-bottom: 18px;">
                 <span class="panel-title-icon">🔌</span>
-                Backend Core & Model Status
+                Backend Core & Data Storage
               </div>
               <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div>
                   <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Backend API Base URL</label>
                   <div style="display: flex; gap: 10px;">
-                    <input type="text" id="settings-api-url" value="http://localhost:8050" style="flex: 1; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.45); border-radius: var(--radius-sm); padding: 10px 14px; color: #fff; font-family: var(--font-mono); font-size: 13px;" />
-                    <button class="panel-btn" id="settings-test-api-btn" style="padding: 10px 16px; font-size: 12px;">Ping Core</button>
+                    <input type="text" id="settings-api-url" value="http://localhost:8050" style="flex: 1; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 9px 12px; color: inherit; font-family: var(--font-mono); font-size: 13px;" />
+                    <button class="panel-btn" id="settings-test-api-btn" style="padding: 9px 14px; font-size: 12px;">Ping Core</button>
                   </div>
-                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
-                    Default: <code style="color: #c4b5fd;">http://localhost:8050</code>. When hosting online on GitHub Pages, enter your cloud server or tunnel URL here. When offline, Standalone Client-Side Forensics run automatically.
+                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.4;">
+                    Default: <code style="color: var(--accent-purple);">http://localhost:8050</code>. Connected to PyTorch CRNN & OpenCV live forensic engine.
                   </div>
                 </div>
 
-                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.4); font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Storage & Cache Stats -->
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Local Incident Storage:</div>
+                    <div style="font-size: 13px; font-weight: 700; color: inherit; margin-top: 2px;" id="settings-storage-stat">Forensic History: Ready</div>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="panel-btn panel-btn-outline" id="settings-export-json-btn" title="Export raw event telemetry" style="padding: 5px 10px; font-size: 11px;">📥 JSON</button>
+                    <button class="panel-btn panel-btn-outline" id="settings-clear-logs-btn" title="Purge event records" style="padding: 5px 10px; font-size: 11px; color: #ef4444;">🗑️ Clear</button>
+                  </div>
+                </div>
+
+                <!-- Neural Architecture Details -->
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.15); font-size: 11.5px; display: flex; flex-direction: column; gap: 6px;">
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: var(--text-muted);">Voice Model Checkpoint:</span>
                     <strong style="color: #10b981; font-family: var(--font-mono);">best_model10.pth (46.8 MB)</strong>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: var(--text-muted);">Neural Architecture:</span>
-                    <strong style="color: #c4b5fd;">CRNN + Bi-GRU + Attention</strong>
+                    <strong style="color: var(--accent-purple);">CRNN + Bi-GRU + Attention</strong>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Total Trainable Weights:</span>
-                    <strong style="color: #fff; font-family: var(--font-mono);">11,699,714 Parameters</strong>
+                    <span style="color: var(--text-muted);">Trainable Parameters:</span>
+                    <strong style="color: inherit; font-family: var(--font-mono);">11,699,714 Parameters</strong>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-muted);">Vision Forensics:</span>
-                    <strong style="color: #38bdf8;">2D FFT + Laplacian + Seams</strong>
+                    <span style="color: var(--text-muted);">Liveness & Texture:</span>
+                    <strong style="color: var(--accent-cyan);">2D FFT + Laplacian + Seams</strong>
                   </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <!-- Save & Reset Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 4px;">
                   <button class="panel-btn" id="settings-save-btn" style="flex: 1; justify-content: center;">💾 Save Changes</button>
                   <button class="panel-btn panel-btn-outline" id="settings-reset-btn">↺ Reset</button>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
 

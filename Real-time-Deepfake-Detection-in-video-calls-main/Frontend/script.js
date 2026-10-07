@@ -1060,11 +1060,309 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsDisplay = document.getElementById('settings-threshold-display');
   const settingsStrict = document.getElementById('settings-strict-mode');
   const settingsSiren = document.getElementById('settings-siren-toggle');
+  const settingsAutoSnap = document.getElementById('settings-auto-snap');
+  const settingsFpsSelect = document.getElementById('settings-fps-select');
+  const settingsCameraSelect = document.getElementById('settings-camera-select');
+  const settingsMicSelect = document.getElementById('settings-mic-select');
+  const settingsRefreshDevBtn = document.getElementById('settings-refresh-devices-btn');
+  const settingsTestMicBtn = document.getElementById('settings-test-mic-btn');
+  const settingsMicMeterFill = document.getElementById('settings-mic-meter-fill');
+  const settingsResSelect = document.getElementById('settings-resolution-select');
+  const settingsSirenVol = document.getElementById('settings-siren-volume');
+  const settingsSirenVolDisp = document.getElementById('settings-siren-vol-display');
+  const settingsTestSirenBtn = document.getElementById('settings-test-siren-btn');
+  const settingsNotifStatus = document.getElementById('settings-notif-status');
+  const settingsReqNotifBtn = document.getElementById('settings-req-notif-btn');
+  const settingsOperatorName = document.getElementById('settings-operator-name');
+  const settingsOrgName = document.getElementById('settings-org-name');
+  const settingsStorageStat = document.getElementById('settings-storage-stat');
+  const settingsExportJsonBtn = document.getElementById('settings-export-json-btn');
+  const settingsClearLogsBtn = document.getElementById('settings-clear-logs-btn');
   const settingsApiUrl = document.getElementById('settings-api-url');
   const settingsTestApiBtn = document.getElementById('settings-test-api-btn');
   const settingsSaveBtn = document.getElementById('settings-save-btn');
   const settingsResetBtn = document.getElementById('settings-reset-btn');
 
+  let settingsMicTestStream = null;
+  let settingsMicTestAudioCtx = null;
+  let settingsMicTestAnimId = null;
+
+  // 1. Device Enumeration
+  async function populateMediaDevices() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      const audioDevices = devices.filter(d => d.kind === 'audioinput');
+
+      if (settingsCameraSelect) {
+        const savedCam = localStorage.getItem('deepshield_selected_camera') || 'default';
+        settingsCameraSelect.innerHTML = '<option value="default">Default System Webcam</option>';
+        videoDevices.forEach((dev, idx) => {
+          const opt = document.createElement('option');
+          opt.value = dev.deviceId;
+          opt.textContent = dev.label || `Camera ${idx + 1}`;
+          if (dev.deviceId === savedCam) opt.selected = true;
+          settingsCameraSelect.appendChild(opt);
+        });
+      }
+
+      if (settingsMicSelect) {
+        const savedMic = localStorage.getItem('deepshield_selected_mic') || 'default';
+        settingsMicSelect.innerHTML = '<option value="default">Default System Microphone</option>';
+        audioDevices.forEach((dev, idx) => {
+          const opt = document.createElement('option');
+          opt.value = dev.deviceId;
+          opt.textContent = dev.label || `Microphone ${idx + 1}`;
+          if (dev.deviceId === savedMic) opt.selected = true;
+          settingsMicSelect.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.warn('[Settings] Failed to enumerate devices:', err);
+    }
+  }
+
+  if (settingsRefreshDevBtn) {
+    settingsRefreshDevBtn.addEventListener('click', async () => {
+      await populateMediaDevices();
+      showToast('Hardware devices scanned and updated', 'info');
+    });
+  }
+
+  // 2. Microphone Level Meter Tester
+  function stopSettingsMicTest() {
+    if (settingsMicTestAnimId) {
+      cancelAnimationFrame(settingsMicTestAnimId);
+      settingsMicTestAnimId = null;
+    }
+    if (settingsMicTestStream) {
+      settingsMicTestStream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} });
+      settingsMicTestStream = null;
+    }
+    if (settingsMicTestAudioCtx) {
+      try { settingsMicTestAudioCtx.close(); } catch (_) {}
+      settingsMicTestAudioCtx = null;
+    }
+    if (settingsMicMeterFill) settingsMicMeterFill.style.width = '0%';
+    if (settingsTestMicBtn) {
+      settingsTestMicBtn.textContent = '🎙️ Test Mic';
+      settingsTestMicBtn.style.background = '';
+    }
+  }
+
+  if (settingsTestMicBtn) {
+    settingsTestMicBtn.addEventListener('click', async () => {
+      if (settingsMicTestStream) {
+        stopSettingsMicTest();
+        showToast('Microphone test ended', 'info');
+        return;
+      }
+
+      try {
+        const selectedMicId = settingsMicSelect ? settingsMicSelect.value : 'default';
+        const constraints = {
+          audio: selectedMicId && selectedMicId !== 'default'
+            ? { deviceId: { exact: selectedMicId } }
+            : true
+        };
+        settingsMicTestStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        settingsMicTestAudioCtx = new AudioCtx();
+        if (settingsMicTestAudioCtx.state === 'suspended') {
+          await settingsMicTestAudioCtx.resume();
+        }
+
+        const src = settingsMicTestAudioCtx.createMediaStreamSource(settingsMicTestStream);
+        const analyser = settingsMicTestAudioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        src.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function updateMeter() {
+          if (!settingsMicTestStream || !settingsMicMeterFill) return;
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const avg = sum / dataArray.length;
+          const pct = Math.min(100, Math.round((avg / 128) * 100));
+          settingsMicMeterFill.style.width = `${pct}%`;
+          settingsMicTestAnimId = requestAnimationFrame(updateMeter);
+        }
+
+        updateMeter();
+        settingsTestMicBtn.textContent = '⏹ Stop Test';
+        settingsTestMicBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+        showToast('Microphone testing active — speak into mic', 'success');
+      } catch (err) {
+        console.warn('[Settings] Mic test failed:', err);
+        showToast('Could not access microphone: ' + err.message, 'warning');
+        stopSettingsMicTest();
+      }
+    });
+  }
+
+  // 3. Siren Volume & Test Tone
+  if (settingsSirenVol && settingsSirenVolDisp) {
+    const savedVol = localStorage.getItem('deepshield_siren_volume') || '70';
+    settingsSirenVol.value = savedVol;
+    settingsSirenVolDisp.textContent = `${savedVol}%`;
+
+    settingsSirenVol.addEventListener('input', (e) => {
+      const v = e.target.value;
+      settingsSirenVolDisp.textContent = `${v}%`;
+      localStorage.setItem('deepshield_siren_volume', v);
+    });
+  }
+
+  if (settingsTestSirenBtn) {
+    settingsTestSirenBtn.addEventListener('click', () => {
+      const vol = parseInt(settingsSirenVol ? settingsSirenVol.value : '70', 10);
+      if (uiManager && typeof uiManager.playTestSiren === 'function') {
+        uiManager.playTestSiren(vol);
+      }
+      showToast(`Playing Siren Test Tone (${vol}% Volume)`, 'info');
+    });
+  }
+
+  // 4. Desktop Notifications Permission
+  function updateNotifStatusDisplay() {
+    if (!settingsNotifStatus) return;
+    if (!('Notification' in window)) {
+      settingsNotifStatus.textContent = 'Desktop notifications not supported in this browser';
+      if (settingsReqNotifBtn) settingsReqNotifBtn.disabled = true;
+      return;
+    }
+    const perm = Notification.permission;
+    if (perm === 'granted') {
+      settingsNotifStatus.innerHTML = '<span style="color:#10b981;">● Granted</span> — Desktop alerts active';
+      if (settingsReqNotifBtn) settingsReqNotifBtn.textContent = '✓ Active';
+    } else if (perm === 'denied') {
+      settingsNotifStatus.innerHTML = '<span style="color:#ef4444;">● Blocked</span> — Enable in browser permissions';
+      if (settingsReqNotifBtn) settingsReqNotifBtn.textContent = '⚠️ Blocked';
+    } else {
+      settingsNotifStatus.textContent = 'Click to request desktop threat notification alerts';
+      if (settingsReqNotifBtn) settingsReqNotifBtn.textContent = '🔔 Request';
+    }
+  }
+
+  if (settingsReqNotifBtn) {
+    settingsReqNotifBtn.addEventListener('click', async () => {
+      if (!('Notification' in window)) return;
+      try {
+        const res = await Notification.requestPermission();
+        updateNotifStatusDisplay();
+        if (res === 'granted') {
+          new Notification('DeepShield Security System', {
+            body: 'Desktop threat alerts are now armed and active.',
+            icon: 'favicon.ico'
+          });
+          showToast('Desktop alert permissions granted', 'success');
+        } else {
+          showToast('Desktop alert permission was not granted', 'info');
+        }
+      } catch (err) {
+        console.warn('Notification permission error:', err);
+      }
+    });
+  }
+
+  // 5. FPS Inference Throttling
+  if (settingsFpsSelect) {
+    const savedFps = localStorage.getItem('deepshield_fps') || '15';
+    settingsFpsSelect.value = savedFps;
+    const intervalMap = { '5': 200, '10': 100, '15': 66, '25': 40 };
+    if (Config && Config.STREAM) {
+      Config.STREAM.FRAME_INTERVAL_MS = intervalMap[savedFps] || 66;
+    }
+    settingsFpsSelect.addEventListener('change', (e) => {
+      const fps = e.target.value;
+      localStorage.setItem('deepshield_fps', fps);
+      if (Config && Config.STREAM) {
+        Config.STREAM.FRAME_INTERVAL_MS = intervalMap[fps] || 66;
+      }
+      showToast(`Inference rate throttled to ${fps} FPS`, 'info');
+    });
+  }
+
+  // 6. Operator & Organization Profile Metadata
+  if (settingsOperatorName) {
+    const savedOp = localStorage.getItem('deepshield_operator_name');
+    if (savedOp) settingsOperatorName.value = savedOp;
+    settingsOperatorName.addEventListener('input', (e) => {
+      localStorage.setItem('deepshield_operator_name', e.target.value);
+    });
+  }
+
+  if (settingsOrgName) {
+    const savedOrg = localStorage.getItem('deepshield_org_name');
+    if (savedOrg) settingsOrgName.value = savedOrg;
+    settingsOrgName.addEventListener('input', (e) => {
+      localStorage.setItem('deepshield_org_name', e.target.value);
+    });
+  }
+
+  // 7. Storage Footprint & JSON Export
+  function updateSettingsStorageStats() {
+    if (!settingsStorageStat) return;
+    const rows = document.querySelectorAll('#full-history-tbody tr, #log-tbody tr');
+    const rowCount = Math.max(0, rows.length);
+    settingsStorageStat.textContent = `${rowCount} Event Logs Recorded • Storage Active`;
+  }
+
+  if (settingsExportJsonBtn) {
+    settingsExportJsonBtn.addEventListener('click', () => {
+      const rows = document.querySelectorAll('#full-history-tbody tr');
+      const exportData = [];
+      rows.forEach(r => {
+        const cells = r.querySelectorAll('td');
+        if (cells.length >= 6) {
+          exportData.push({
+            frame_id: cells[0].textContent.trim(),
+            timestamp: cells[1].textContent.trim(),
+            confidence: cells[2].textContent.trim(),
+            liveness: cells[3].textContent.trim(),
+            assessment: cells[4].textContent.trim(),
+            verdict: cells[5].textContent.trim()
+          });
+        }
+      });
+
+      const jsonStr = JSON.stringify({
+        system: "DeepShield AI Forensic Surveillance",
+        exported_at: new Date().toISOString(),
+        operator: settingsOperatorName ? settingsOperatorName.value : 'Officer #4092',
+        organization: settingsOrgName ? settingsOrgName.value : 'DeepShield Lab',
+        total_events: exportData.length,
+        events: exportData
+      }, null, 2);
+
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `deepshield_audit_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Exported forensic telemetry JSON', 'success');
+    });
+  }
+
+  if (settingsClearLogsBtn) {
+    settingsClearLogsBtn.addEventListener('click', () => {
+      const histBody = document.getElementById('full-history-tbody');
+      const logBody = document.getElementById('log-tbody');
+      if (histBody) histBody.innerHTML = '';
+      if (logBody) logBody.innerHTML = '';
+      updateSettingsStorageStats();
+      showToast('Incident history cache purged', 'info');
+    });
+  }
+
+  // 8. API URL & Sync
   if (settingsApiUrl) {
     const saved = localStorage.getItem('deepshield_api_url');
     settingsApiUrl.value = saved || Config.API_BASE || 'http://localhost:8050';
@@ -1076,6 +1374,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (settingsDisplay) settingsDisplay.textContent = `${currentVal}%`;
     if (settingsStrict && elements.strictMode) settingsStrict.checked = elements.strictMode.checked;
     if (settingsSiren && elements.audioAlertToggle) settingsSiren.checked = elements.audioAlertToggle.checked;
+    updateSettingsStorageStats();
+    updateNotifStatusDisplay();
+    populateMediaDevices();
   }
 
   if (settingsSlider) {
@@ -1133,8 +1434,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (targetUrl) {
         Config.setApiBase(targetUrl);
       }
+      if (settingsCameraSelect) localStorage.setItem('deepshield_selected_camera', settingsCameraSelect.value);
+      if (settingsMicSelect) localStorage.setItem('deepshield_selected_mic', settingsMicSelect.value);
+      if (settingsResSelect) localStorage.setItem('deepshield_resolution', settingsResSelect.value);
+      if (settingsOperatorName) localStorage.setItem('deepshield_operator_name', settingsOperatorName.value);
+      if (settingsOrgName) localStorage.setItem('deepshield_org_name', settingsOrgName.value);
+      if (settingsSirenVol) localStorage.setItem('deepshield_siren_volume', settingsSirenVol.value);
+      if (settingsFpsSelect) localStorage.setItem('deepshield_fps', settingsFpsSelect.value);
+
       await syncBackendHealth();
-      showToast('💾 Security settings & API endpoint saved to localStorage', 'success');
+      showToast('💾 All security preferences & hardware routing saved to localStorage', 'success');
     });
   }
 
@@ -1146,18 +1455,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = '60%';
       if (settingsStrict) settingsStrict.checked = true;
       if (settingsSiren) settingsSiren.checked = true;
+      if (settingsAutoSnap) settingsAutoSnap.checked = true;
+      if (settingsSirenVol) {
+        settingsSirenVol.value = 70;
+        if (settingsSirenVolDisp) settingsSirenVolDisp.textContent = '70%';
+        localStorage.setItem('deepshield_siren_volume', '70');
+      }
+      if (settingsFpsSelect) settingsFpsSelect.value = '15';
+      if (settingsResSelect) settingsResSelect.value = '640x360';
+      if (settingsOperatorName) settingsOperatorName.value = 'Security Officer #4092';
+      if (settingsOrgName) settingsOrgName.value = 'DeepShield Cyber Intelligence Lab';
       if (settingsApiUrl) settingsApiUrl.value = 'http://localhost:8050';
       Config.setApiBase(null);
       await syncBackendHealth();
-      showToast('Settings reset to system defaults', 'info');
+      showToast('Settings restored to system factory defaults', 'info');
     });
   }
 
-  // =========================================================================
-  // 17. Dedicated Voice Studio: Live Mic & Audio Visualizer
-  // =========================================================================
-  // =========================================================================
-  // 17. Dedicated Voice Studio: Live Mic & Audio Visualizer
+  // Initial device and settings scan
+  populateMediaDevices();
   // =========================================================================
   const voiceMicBtn = document.getElementById('voice-mic-toggle');
   const voiceCanvas = document.getElementById('voice-spectrum-canvas');
