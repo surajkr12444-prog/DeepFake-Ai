@@ -138,6 +138,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.themeToggle.textContent = isLight ? '☀️' : '🌙';
         localStorage.setItem('deepshield_theme', isLight ? 'light' : 'dark');
         showToast(`Theme switched to ${isLight ? 'Light Soft-UI' : 'Dark Neumorphism'}`, 'info');
+        if (typeof drawDonutChart === 'function') drawDonutChart();
+        if (typeof drawMiniChart === 'function') drawMiniChart();
+        if (typeof drawAnalyticsFullChart === 'function') drawAnalyticsFullChart();
       });
     }
   }
@@ -342,9 +345,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Track background
+    // Track background (adapted for light and dark modes)
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#1e293b';
+    ctx.strokeStyle = document.body.classList.contains('light-theme') ? '#cbd5e1' : '#1e293b';
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.stroke();
@@ -375,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     ctx.clearRect(0, 0, width, height);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.06)';
     ctx.lineWidth = 1;
     [20, 40, 60].forEach(y => {
       ctx.beginPath();
@@ -772,15 +775,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 15b. Neumorphic Glow / Matte Toggle
-  if (elements.themeToggle) {
-    elements.themeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('neu-accent-glow');
-      const isGlow = document.body.classList.contains('neu-accent-glow');
-      elements.themeToggle.textContent = isGlow ? '✨' : '🌙';
-      showToast(isGlow ? 'Neumorphic Tactile Glow Mode Active' : 'Neumorphic Dark Matte Mode Active', 'info');
-    });
-  }
+
 
   // =========================================================================
   // 16. Multi-View Routing & Section Switcher Architecture
@@ -872,7 +867,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.clearRect(0, 0, w, h);
 
     // Background Grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    const isLight = document.body.classList.contains('light-theme');
+    ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     for (let y = 30; y < h - 20; y += 40) {
       ctx.beginPath();
@@ -880,7 +876,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ctx.lineTo(w - 20, y);
       ctx.stroke();
 
-      ctx.fillStyle = '#64748b';
+      ctx.fillStyle = isLight ? '#475569' : '#64748b';
       ctx.font = '10px JetBrains Mono, monospace';
       ctx.fillText(`${Math.round(100 - (y / h) * 100)}%`, 10, y + 3);
     }
