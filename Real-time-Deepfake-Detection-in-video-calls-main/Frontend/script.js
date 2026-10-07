@@ -801,8 +801,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ];
 
   function setSectionMode(mode) {
-    // Keep viewport firmly stationary at top (prevents upward jump)
-    window.scrollTo(0, 0);
+    // Smoothly glide viewport to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Hide all view containers
     [secUnified, secVoice, secAnalytics, secHistory, secReports, secSettings].forEach(s => {
