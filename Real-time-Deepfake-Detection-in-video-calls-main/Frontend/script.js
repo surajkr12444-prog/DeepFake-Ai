@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     modalClose2: document.getElementById('modal-close-2'),
     toastContainer: document.getElementById('toast-container'),
     sidebarToggle: document.getElementById('sidebar-toggle'),
+    sidebarCloseBtn: document.getElementById('sidebar-close-btn'),
+    sidebarBackdrop: document.getElementById('sidebar-backdrop'),
     sidebar: document.getElementById('sidebar'),
     themeToggle: document.getElementById('theme-toggle'),
     alertBell: document.getElementById('alert-bell'),
@@ -840,8 +842,74 @@ document.addEventListener('DOMContentLoaded', async () => {
       syncSettingsUI();
     }
 
+    // Automatically close mobile/tablet drawer on navigation
+    closeMobileSidebar();
+
     showToast(`Navigated to: ${match.title}`, 'info');
   }
+
+  // Mobile / Tablet Navigation Drawer Controller
+  function openMobileSidebar() {
+    if (elements.sidebar) elements.sidebar.classList.add('open');
+    if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.add('active');
+    document.body.classList.add('sidebar-drawer-open');
+  }
+
+  function closeMobileSidebar() {
+    if (elements.sidebar) elements.sidebar.classList.remove('open');
+    if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.remove('active');
+    document.body.classList.remove('sidebar-drawer-open');
+  }
+
+  function toggleMobileSidebar() {
+    if (elements.sidebar && elements.sidebar.classList.contains('open')) {
+      closeMobileSidebar();
+    } else {
+      openMobileSidebar();
+    }
+  }
+
+  if (elements.sidebarToggle) {
+    elements.sidebarToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobileSidebar();
+    });
+  }
+
+  if (elements.sidebarCloseBtn) {
+    elements.sidebarCloseBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMobileSidebar();
+    });
+  }
+
+  if (elements.sidebarBackdrop) {
+    elements.sidebarBackdrop.addEventListener('click', () => {
+      closeMobileSidebar();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMobileSidebar();
+      if (elements.snapshotModal) elements.snapshotModal.style.display = 'none';
+      const enrollModal = document.getElementById('enroll-modal');
+      if (enrollModal) enrollModal.style.display = 'none';
+      const notifDrop = document.getElementById('notification-dropdown');
+      if (notifDrop) notifDrop.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) {
+      closeMobileSidebar();
+    }
+    if (secAnalytics && secAnalytics.style.display !== 'none') {
+      drawAnalyticsFullChart();
+    }
+  });
 
   // Bind Sidebar Nav Links (Single Master Controller)
   if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
@@ -1558,6 +1626,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Draw Audio Visualizer (Multi-Mode: FFT, Oscilloscope Wave, Spectrogram)
   function drawVoiceSpectrum() {
     if (!voiceCanvas || !voiceAnalyser || !isVoiceMicActive) return;
+    if (voiceCanvas.parentElement && voiceCanvas.parentElement.clientWidth > 0) {
+      if (Math.abs(voiceCanvas.width - voiceCanvas.parentElement.clientWidth) > 5) {
+        voiceCanvas.width = voiceCanvas.parentElement.clientWidth;
+      }
+    }
     const ctx = voiceCanvas.getContext('2d');
     const width = voiceCanvas.width;
     const height = voiceCanvas.height;
