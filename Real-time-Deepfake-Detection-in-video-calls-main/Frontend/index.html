@@ -128,10 +128,30 @@
           </div>
         </div>
 
-        <div class="topbar-right">
+        <div class="topbar-right" style="position: relative;">
           <div class="topbar-clock" id="topbar-clock">--:--:--</div>
-          <div class="topbar-btn" id="alert-bell" title="Active Alerts">🔔<span class="alert-count">0</span></div>
-          <div class="topbar-btn" id="theme-toggle" title="Theme Selector">🌙</div>
+          <div class="topbar-btn" id="alert-bell" title="Active Alerts" style="cursor: pointer; position: relative;">
+            🔔<span class="alert-count" id="notification-badge">0</span>
+          </div>
+
+          <!-- NOTIFICATION CENTER DROPDOWN -->
+          <div class="notification-dropdown" id="notification-dropdown" style="display: none;">
+            <div class="notif-header">
+              <div class="notif-title">
+                <span>🔔 Security & System Alerts</span>
+                <span class="notif-unread-tag" id="notif-unread-count">0 Unread</span>
+              </div>
+              <div class="notif-actions">
+                <button class="notif-btn" id="notif-mark-read">Mark All Read</button>
+                <button class="notif-btn notif-clear-btn" id="notif-clear-all">Clear</button>
+              </div>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="topbar-btn" id="theme-toggle" title="Toggle Dark/Light Mode" style="cursor: pointer;">🌙</div>
         </div>
       </header>
 
@@ -710,7 +730,11 @@
                   <span id="vfr-filename">sample.wav</span>
                   <span class="vfr-badge" id="vfr-badge">ANALYSIS COMPLETE</span>
                 </div>
-                <div class="vfr-body">
+                <!-- Interactive Audio Player -->
+                <div class="vfr-audio-player-wrap" style="margin-top: 10px;">
+                  <audio id="voice-audio-player" controls style="width: 100%; border-radius: 8px; outline: none;"></audio>
+                </div>
+                <div class="vfr-body" style="margin-top: 10px;">
                   <div class="vfr-metric-row">
                     <span>Neural Classification:</span>
                     <strong id="vfr-label">Real Human Voice</strong>
@@ -1142,6 +1166,79 @@
       <div class="modal-actions">
         <a id="download-snapshot" class="panel-btn" download="deepshield-snapshot.png">⬇ Download PNG</a>
         <button class="panel-btn panel-btn-outline" id="modal-close-2">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Face Biometric Enrollment Modal -->
+  <div class="modal-overlay" id="enroll-modal" style="display:none;">
+    <div class="modal-card enroll-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-title">📸 Trusted Face Biometric Enrollment</span>
+          <span class="modal-sub">Enroll an authorized reference portrait to cross-verify against deepfake swaps</span>
+        </div>
+        <button class="modal-close" id="enroll-modal-close">✕</button>
+      </div>
+
+      <!-- Tab Switcher: Live Camera Capture vs File Upload -->
+      <div class="enroll-tabs">
+        <button class="enroll-tab active" id="enroll-tab-cam">📹 Camera Capture</button>
+        <button class="enroll-tab" id="enroll-tab-upload">📁 Upload ID / Photo</button>
+      </div>
+
+      <!-- Camera Capture Mode View -->
+      <div class="enroll-view" id="enroll-view-cam">
+        <div class="enroll-preview-box">
+          <video id="enroll-cam-video" autoplay muted playsinline style="display: none;"></video>
+          <canvas id="enroll-cam-canvas" style="display: none;"></canvas>
+          <div class="enroll-cam-idle" id="enroll-cam-idle">
+            <span class="idle-cam-icon">📷</span>
+            <p>Ready to capture high-definition facial portrait</p>
+            <button class="panel-btn" id="enroll-start-cam-btn">▶ Start Reference Camera</button>
+          </div>
+          <div class="hud-corner hud-tl"></div>
+          <div class="hud-corner hud-tr"></div>
+          <div class="hud-corner hud-bl"></div>
+          <div class="hud-corner hud-br"></div>
+        </div>
+        <div class="enroll-capture-actions">
+          <button class="panel-btn" id="enroll-capture-btn" disabled>📸 Capture Portrait Frame</button>
+        </div>
+      </div>
+
+      <!-- File Upload Mode View -->
+      <div class="enroll-view" id="enroll-view-upload" style="display: none;">
+        <div class="voice-upload-zone" id="enroll-drop-zone" style="margin-bottom: 0;">
+          <div class="voice-upload-icon">🖼️</div>
+          <div class="voice-upload-text">Drag & drop facial portrait or click below</div>
+          <div class="voice-upload-sub">Supports JPG, PNG, WEBP (Clear frontal facial photo)</div>
+          <label class="panel-btn" for="enroll-file-input" style="cursor: pointer; margin-top: 12px;">
+            📂 Choose Photo File
+          </label>
+          <input type="file" id="enroll-file-input" accept="image/*" style="display: none;" />
+        </div>
+        <div class="enroll-image-preview" id="enroll-img-preview" style="display: none;">
+          <img id="enroll-preview-img" alt="Enrolled Preview" />
+          <span class="preview-filename" id="enroll-preview-name">portrait.jpg</span>
+        </div>
+      </div>
+
+      <!-- Enrollment Meta & Submit -->
+      <div class="enroll-form-group">
+        <label for="enroll-subject-name">Subject Name / Identifier:</label>
+        <input type="text" id="enroll-subject-name" class="settings-input" placeholder="e.g. Authorized Operator / John Doe" value="Authorized Operator" />
+      </div>
+
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button class="panel-btn" id="enroll-confirm-btn" disabled>💾 Save & Enroll Face</button>
+        <button class="panel-btn panel-btn-outline" id="enroll-modal-cancel">Cancel</button>
+      </div>
+
+      <!-- Recently Enrolled Faces Status Strip -->
+      <div class="enrolled-status-strip" id="enrolled-status-strip">
+        <span class="ess-label">SYSTEM REFERENCE REPOSITORY:</span>
+        <span class="ess-val" id="enrolled-count-badge">0 Faces Active</span>
       </div>
     </div>
   </div>

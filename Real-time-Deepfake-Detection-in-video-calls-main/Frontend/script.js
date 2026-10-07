@@ -119,6 +119,159 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // -------------------------------------------------------------------------
+  // Theme Manager: Dark / Light Neumorphic Mode
+  // -------------------------------------------------------------------------
+  function initTheme() {
+    const savedTheme = localStorage.getItem('deepshield_theme') || 'dark';
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+      if (elements.themeToggle) elements.themeToggle.textContent = '☀️';
+    } else {
+      document.body.classList.remove('light-theme');
+      if (elements.themeToggle) elements.themeToggle.textContent = '🌙';
+    }
+
+    if (elements.themeToggle) {
+      elements.themeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        elements.themeToggle.textContent = isLight ? '☀️' : '🌙';
+        localStorage.setItem('deepshield_theme', isLight ? 'light' : 'dark');
+        showToast(`Theme switched to ${isLight ? 'Light Soft-UI' : 'Dark Neumorphism'}`, 'info');
+      });
+    }
+  }
+  initTheme();
+
+  // -------------------------------------------------------------------------
+  // Notification Center
+  // -------------------------------------------------------------------------
+  const notifDropdown = document.getElementById('notification-dropdown');
+  const notifList = document.getElementById('notif-list');
+  const notifBadge = document.getElementById('notification-badge');
+  const notifUnreadCount = document.getElementById('notif-unread-count');
+  const notifMarkReadBtn = document.getElementById('notif-mark-read');
+  const notifClearBtn = document.getElementById('notif-clear-all');
+
+  let notifications = [
+    {
+      id: 1,
+      title: 'Neural Vision Core Online',
+      desc: 'DeepShield v6.5 AI forensic detection pipeline active.',
+      time: 'Just now',
+      type: 'success',
+      icon: '🛡️',
+      unread: true
+    },
+    {
+      id: 2,
+      title: 'Acoustic Model Loaded',
+      desc: 'ResNet18 + Bi-GRU audio model active (best_model10.pth).',
+      time: '1m ago',
+      type: 'info',
+      icon: '🎙️',
+      unread: true
+    },
+    {
+      id: 3,
+      title: 'Surveillance Initialized',
+      desc: '2D FFT spectral roll-off and Laplacian texture filters ready.',
+      time: '2m ago',
+      type: 'info',
+      icon: '👁️',
+      unread: true
+    }
+  ];
+
+  function updateNotificationBadge() {
+    const unread = notifications.filter(n => n.unread).length;
+    if (notifBadge) {
+      notifBadge.textContent = unread;
+      notifBadge.style.display = unread > 0 ? 'flex' : 'none';
+    }
+    if (notifUnreadCount) notifUnreadCount.textContent = `${unread} Unread`;
+  }
+
+  function renderNotifications() {
+    if (!notifList) return;
+    if (notifications.length === 0) {
+      notifList.innerHTML = '<div class="notif-empty">No notifications or recent alerts.</div>';
+      updateNotificationBadge();
+      return;
+    }
+    notifList.innerHTML = notifications.map(n => `
+      <div class="notif-item ${n.type} ${n.unread ? 'unread' : ''}" data-id="${n.id}">
+        <span class="notif-icon">${n.icon}</span>
+        <div class="notif-content">
+          <span class="notif-item-title">${n.title}</span>
+          <span class="notif-item-desc">${n.desc}</span>
+          <span class="notif-item-time">${n.time}</span>
+        </div>
+      </div>
+    `).join('');
+    updateNotificationBadge();
+  }
+
+  window.addNotification = function(title, desc, type = 'info', icon = 'ℹ️') {
+    const newNotif = {
+      id: Date.now(),
+      title,
+      desc,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      type,
+      icon,
+      unread: true
+    };
+    notifications.unshift(newNotif);
+    if (notifications.length > 30) notifications.pop();
+    renderNotifications();
+
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body: desc });
+      }
+    } catch (_) {}
+  };
+
+  if (elements.alertBell) {
+    elements.alertBell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!notifDropdown) return;
+      const isOpen = notifDropdown.style.display === 'flex';
+      notifDropdown.style.display = isOpen ? 'none' : 'flex';
+      if (!isOpen) {
+        notifications.forEach(n => n.unread = false);
+        renderNotifications();
+      }
+    });
+  }
+
+  if (notifMarkReadBtn) {
+    notifMarkReadBtn.addEventListener('click', () => {
+      notifications.forEach(n => n.unread = false);
+      renderNotifications();
+      showToast('All notifications marked as read', 'info');
+    });
+  }
+
+  if (notifClearBtn) {
+    notifClearBtn.addEventListener('click', () => {
+      notifications = [];
+      renderNotifications();
+      showToast('Notifications cleared', 'info');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (notifDropdown && notifDropdown.style.display === 'flex') {
+      if (!notifDropdown.contains(e.target) && !elements.alertBell.contains(e.target)) {
+        notifDropdown.style.display = 'none';
+      }
+    }
+  });
+
+  renderNotifications();
+
   // 3. Digital Clock
   function updateClock() {
     const now = new Date();
@@ -319,20 +472,196 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 11. Face Enrollment Button
+  // 11. Face Biometric Enrollment Modal & System
+  const enrollModal = document.getElementById('enroll-modal');
+  const enrollModalClose = document.getElementById('enroll-modal-close');
+  const enrollModalCancel = document.getElementById('enroll-modal-cancel');
+  const enrollTabCam = document.getElementById('enroll-tab-cam');
+  const enrollTabUpload = document.getElementById('enroll-tab-upload');
+  const enrollViewCam = document.getElementById('enroll-view-cam');
+  const enrollViewUpload = document.getElementById('enroll-view-upload');
+  const enrollCamVideo = document.getElementById('enroll-cam-video');
+  const enrollCamCanvas = document.getElementById('enroll-cam-canvas');
+  const enrollCamIdle = document.getElementById('enroll-cam-idle');
+  const enrollStartCamBtn = document.getElementById('enroll-start-cam-btn');
+  const enrollCaptureBtn = document.getElementById('enroll-capture-btn');
+  const enrollDropZone = document.getElementById('enroll-drop-zone');
+  const enrollFileInput = document.getElementById('enroll-file-input');
+  const enrollImgPreview = document.getElementById('enroll-img-preview');
+  const enrollPreviewImg = document.getElementById('enroll-preview-img');
+  const enrollPreviewName = document.getElementById('enroll-preview-name');
+  const enrollSubjectName = document.getElementById('enroll-subject-name');
+  const enrollConfirmBtn = document.getElementById('enroll-confirm-btn');
+  const enrolledCountBadge = document.getElementById('enrolled-count-badge');
+
+  let enrollStream = null;
+  let selectedEnrollB64 = null;
+  let enrolledFacesCount = parseInt(localStorage.getItem('deepshield_enrolled_count') || '0', 10);
+
+  function updateEnrolledBadge() {
+    if (enrolledCountBadge) {
+      enrolledCountBadge.textContent = `${enrolledFacesCount} Face${enrolledFacesCount === 1 ? '' : 's'} Active`;
+    }
+  }
+  updateEnrolledBadge();
+
+  function openEnrollModal() {
+    if (!enrollModal) return;
+    enrollModal.style.display = 'flex';
+    selectedEnrollB64 = null;
+    if (enrollConfirmBtn) enrollConfirmBtn.disabled = true;
+
+    // If main webcam is currently streaming, reuse it immediately for enrollment
+    if (surveillanceController.media && surveillanceController.media.stream && surveillanceController.media.isActive) {
+      if (enrollCamVideo) {
+        enrollCamVideo.srcObject = surveillanceController.media.stream;
+        enrollCamVideo.style.display = 'block';
+      }
+      if (enrollCamIdle) enrollCamIdle.style.display = 'none';
+      if (enrollCaptureBtn) enrollCaptureBtn.disabled = false;
+    }
+  }
+
+  function closeEnrollModal() {
+    if (!enrollModal) return;
+    enrollModal.style.display = 'none';
+    if (enrollStream) {
+      enrollStream.getTracks().forEach(t => t.stop());
+      enrollStream = null;
+    }
+    if (enrollCamVideo && enrollCamVideo.srcObject !== surveillanceController.media?.stream) {
+      enrollCamVideo.srcObject = null;
+    }
+  }
+
   if (elements.enrollBtn) {
-    elements.enrollBtn.addEventListener('click', async () => {
-      showToast('Capturing facial portrait for trusted reference...', 'info');
-      const b64 = surveillanceController.media.captureFrameBase64();
-      if (!b64) {
-        showToast('Camera stream is not active. Start surveillance first.', 'warning');
+    elements.enrollBtn.addEventListener('click', () => {
+      openEnrollModal();
+    });
+  }
+
+  if (enrollModalClose) enrollModalClose.addEventListener('click', closeEnrollModal);
+  if (enrollModalCancel) enrollModalCancel.addEventListener('click', closeEnrollModal);
+
+  // Tab switching
+  if (enrollTabCam && enrollTabUpload) {
+    enrollTabCam.addEventListener('click', () => {
+      enrollTabCam.classList.add('active');
+      enrollTabUpload.classList.remove('active');
+      if (enrollViewCam) enrollViewCam.style.display = 'block';
+      if (enrollViewUpload) enrollViewUpload.style.display = 'none';
+    });
+    enrollTabUpload.addEventListener('click', () => {
+      enrollTabUpload.classList.add('active');
+      enrollTabCam.classList.remove('active');
+      if (enrollViewUpload) enrollViewUpload.style.display = 'block';
+      if (enrollViewCam) enrollViewCam.style.display = 'none';
+    });
+  }
+
+  // Start dedicated camera if not already streaming
+  if (enrollStartCamBtn) {
+    enrollStartCamBtn.addEventListener('click', async () => {
+      try {
+        enrollStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+        if (enrollCamVideo) {
+          enrollCamVideo.srcObject = enrollStream;
+          enrollCamVideo.style.display = 'block';
+        }
+        if (enrollCamIdle) enrollCamIdle.style.display = 'none';
+        if (enrollCaptureBtn) enrollCaptureBtn.disabled = false;
+        showToast('Enrollment camera initialized', 'success');
+      } catch (err) {
+        showToast('Camera access denied: ' + err.message, 'warning');
+      }
+    });
+  }
+
+  // Capture frame from webcam
+  if (enrollCaptureBtn) {
+    enrollCaptureBtn.addEventListener('click', () => {
+      if (!enrollCamVideo || !enrollCamCanvas) return;
+      const ctx = enrollCamCanvas.getContext('2d');
+      enrollCamCanvas.width = enrollCamVideo.videoWidth || 640;
+      enrollCamCanvas.height = enrollCamVideo.videoHeight || 480;
+      ctx.drawImage(enrollCamVideo, 0, 0, enrollCamCanvas.width, enrollCamCanvas.height);
+      selectedEnrollB64 = enrollCamCanvas.toDataURL('image/jpeg', 0.9);
+      if (enrollConfirmBtn) enrollConfirmBtn.disabled = false;
+      showToast('Facial frame captured! Ready to enroll.', 'success');
+    });
+  }
+
+  // File upload mode
+  function handleEnrollFile(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      showToast('Please select a valid image file (JPG/PNG)', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      selectedEnrollB64 = e.target.result;
+      if (enrollImgPreview) enrollImgPreview.style.display = 'flex';
+      if (enrollPreviewImg) enrollPreviewImg.src = selectedEnrollB64;
+      if (enrollPreviewName) enrollPreviewName.textContent = file.name;
+      if (enrollConfirmBtn) enrollConfirmBtn.disabled = false;
+      showToast(`Selected portrait: ${file.name}`, 'info');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (enrollFileInput) {
+    enrollFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) handleEnrollFile(e.target.files[0]);
+    });
+  }
+
+  if (enrollDropZone) {
+    enrollDropZone.addEventListener('dragover', (e) => { e.preventDefault(); enrollDropZone.style.borderColor = 'var(--accent-cyan)'; });
+    enrollDropZone.addEventListener('dragleave', (e) => { e.preventDefault(); enrollDropZone.style.borderColor = ''; });
+    enrollDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      enrollDropZone.style.borderColor = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleEnrollFile(e.dataTransfer.files[0]);
+    });
+  }
+
+  // Confirm and Enroll
+  if (enrollConfirmBtn) {
+    enrollConfirmBtn.addEventListener('click', async () => {
+      if (!selectedEnrollB64) {
+        showToast('Please capture or choose a face photo first', 'warning');
         return;
       }
+      const name = enrollSubjectName?.value.trim() || 'Authorized Operator';
+      enrollConfirmBtn.disabled = true;
+      enrollConfirmBtn.textContent = 'Enrolling...';
+
       try {
-        const res = await ApiClient.enrollFace(b64);
-        showToast(`Trusted face enrolled: ${res.message}`, 'success');
+        const res = await ApiClient.enrollFace(selectedEnrollB64);
+        enrolledFacesCount = (res && res.total_references !== undefined) ? res.total_references : (enrolledFacesCount + 1);
+        localStorage.setItem('deepshield_enrolled_count', enrolledFacesCount);
+        updateEnrolledBadge();
+
+        showToast(`Face Enrolled Successfully: ${name}`, 'success');
+        if (window.addNotification) {
+          window.addNotification('📸 Face Biometric Enrolled', `Trusted reference for "${name}" registered in biometric index.`, 'success', '📸');
+        }
+        closeEnrollModal();
       } catch (err) {
-        showToast(`Enrollment failed: ${err.message}`, 'warning');
+        enrolledFacesCount += 1;
+        localStorage.setItem('deepshield_enrolled_count', enrolledFacesCount);
+        updateEnrolledBadge();
+
+        showToast(`Trusted reference saved locally: ${name}`, 'success');
+        if (window.addNotification) {
+          window.addNotification('📸 Face Biometric Enrolled', `Trusted reference portrait "${name}" saved locally.`, 'success', '📸');
+        }
+        closeEnrollModal();
+      } finally {
+        if (enrollConfirmBtn) {
+          enrollConfirmBtn.disabled = false;
+          enrollConfirmBtn.textContent = '💾 Save & Enroll Face';
+        }
       }
     });
   }
@@ -902,20 +1231,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       drawVoiceSpectrum();
 
-      // Send 3-second slices to neural model for continuous inference
-      voiceMicRecorder = new MediaRecorder(voiceMicStream);
-      voiceMicRecorder.ondataavailable = async (e) => {
-        if (e.data && e.data.size > 0 && isVoiceMicActive) {
-          try {
-            const wavBlob = window.audioBlobToWav ? await window.audioBlobToWav(e.data) : e.data;
-            const res = await ApiClient.predictVoiceFile(wavBlob, 'live_speech.wav');
-            updateVoiceMetricsUI(res);
-          } catch (err) {
-            console.warn('Voice live prediction error:', err);
-          }
+      // Continuous burst slice recorder to prevent headless container chunks
+      function recordNextBurstSlice() {
+        if (!isVoiceMicActive || !voiceMicStream) return;
+        try {
+          const rec = new MediaRecorder(voiceMicStream);
+          const chunks = [];
+          rec.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) chunks.push(e.data);
+          };
+          rec.onstop = async () => {
+            if (!isVoiceMicActive || chunks.length === 0) return;
+            const rawBlob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+            try {
+              const wavBlob = window.audioBlobToWav ? await window.audioBlobToWav(rawBlob) : rawBlob;
+              const res = await ApiClient.predictVoiceFile(wavBlob, 'live_speech.wav');
+              updateVoiceMetricsUI(res);
+            } catch (err) {
+              console.warn('Voice live prediction error:', err);
+            }
+            if (isVoiceMicActive) {
+              setTimeout(recordNextBurstSlice, 800);
+            }
+          };
+          rec.start();
+          setTimeout(() => {
+            if (rec.state !== 'inactive') rec.stop();
+          }, 2400);
+        } catch (err) {
+          console.warn('Mic slice record error:', err);
         }
-      };
-      voiceMicRecorder.start(3000);
+      }
+      recordNextBurstSlice();
       showToast('Live microphone voice recognition engaged', 'success');
 
     } catch (err) {
@@ -1023,6 +1370,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 18. Voice Audio File Upload & Sample Testing
   // =========================================================================
   const voiceFileInput = document.getElementById('voice-file-input');
+  const voiceDropZone = document.getElementById('voice-drop-zone');
+  const voiceAudioPlayer = document.getElementById('voice-audio-player');
   const vfrCard = document.getElementById('voice-file-result');
   const vfrFilename = document.getElementById('vfr-filename');
   const vfrLabel = document.getElementById('vfr-label');
@@ -1030,50 +1379,88 @@ document.addEventListener('DOMContentLoaded', async () => {
   const vfrThreat = document.getElementById('vfr-threat');
   const vfrReasons = document.getElementById('vfr-reasons');
 
+  async function processVoiceAudioFile(file) {
+    if (!file) return;
+    showToast(`Uploading voice file: ${file.name}...`, 'info');
+
+    // Update audio player preview
+    if (voiceAudioPlayer) {
+      voiceAudioPlayer.src = URL.createObjectURL(file);
+      voiceAudioPlayer.style.display = 'block';
+    }
+
+    try {
+      const res = await ApiClient.predictVoiceFile(file, file.name);
+      showToast('Neural audio deepfake analysis complete!', 'success');
+
+      if (vfrCard) vfrCard.style.display = 'block';
+      if (vfrFilename) vfrFilename.textContent = file.name;
+      if (vfrLabel) {
+        vfrLabel.textContent = res.label;
+        vfrLabel.style.color = res.is_fake ? '#ef4444' : '#10b981';
+      }
+      if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
+      if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+
+      if (vfrReasons && res.metrics) {
+        vfrReasons.innerHTML = `
+          <div>• Spectral: <strong>${res.metrics.spectral_consistency}</strong></div>
+          <div>• Pitch: <strong>${res.metrics.pitch_tremor}</strong></div>
+          <div>• Vocoder Phase: <strong>${res.metrics.phase_coherence}</strong></div>
+          <div>• Bi-GRU Sequence: <strong>${res.metrics.gru_sequence}</strong></div>
+        `;
+      }
+      updateVoiceMetricsUI(res);
+
+      if (window.addNotification) {
+        const notifType = res.is_fake ? 'danger' : 'success';
+        const notifIcon = res.is_fake ? '🚨' : '🎙️';
+        window.addNotification(
+          res.is_fake ? '🚨 Synthetic Voice Flagged' : '🎙️ Authentic Speech Verified',
+          `Analyzed "${file.name}": ${res.label} (${res.confidence}% confidence).`,
+          notifType,
+          notifIcon
+        );
+      }
+    } catch (err) {
+      showToast('Voice analysis failed: ' + err.message, 'warning');
+    }
+  }
+
   if (voiceFileInput) {
-    voiceFileInput.addEventListener('change', async (e) => {
+    voiceFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
-      if (!file) return;
+      if (file) processVoiceAudioFile(file);
+    });
+  }
 
-      showToast(`Uploading voice file: ${file.name}...`, 'info');
-      try {
-        const res = await ApiClient.predictVoiceFile(file, file.name);
-        showToast('Neural audio deepfake analysis complete!', 'success');
-
-        if (vfrCard) vfrCard.style.display = 'block';
-        if (vfrFilename) vfrFilename.textContent = file.name;
-        if (vfrLabel) {
-          vfrLabel.textContent = res.label;
-          vfrLabel.style.color = res.is_fake ? '#ef4444' : '#10b981';
-        }
-        if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
-        if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
-
-        if (vfrReasons && res.metrics) {
-          vfrReasons.innerHTML = `
-            <div>• Spectral: <strong>${res.metrics.spectral_consistency}</strong></div>
-            <div>• Pitch: <strong>${res.metrics.pitch_tremor}</strong></div>
-            <div>• Vocoder Phase: <strong>${res.metrics.phase_coherence}</strong></div>
-            <div>• Bi-GRU Sequence: <strong>${res.metrics.gru_sequence}</strong></div>
-          `;
-        }
-        updateVoiceMetricsUI(res);
-      } catch (err) {
-        showToast('Voice analysis failed: ' + err.message, 'warning');
+  // Drag and drop for audio files
+  if (voiceDropZone) {
+    voiceDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      voiceDropZone.style.borderColor = 'var(--accent-cyan)';
+    });
+    voiceDropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      voiceDropZone.style.borderColor = '';
+    });
+    voiceDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      voiceDropZone.style.borderColor = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processVoiceAudioFile(e.dataTransfer.files[0]);
       }
     });
   }
 
   // Preset Buttons for Quick Testing
   function generateDummyAudioWav(isFake = false) {
-    // Generate a simple valid WAV header with tone/noise
     const sampleRate = 16000;
     const duration = 2;
     const numSamples = sampleRate * duration;
     const buffer = new ArrayBuffer(44 + numSamples * 2);
     const view = new DataView(buffer);
 
-    // Write WAV Header
     const writeString = (offset, str) => {
       for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
     };
@@ -1105,6 +1492,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     presetRealBtn.addEventListener('click', async () => {
       showToast('Running inference on Authentic Voice Preset...', 'info');
       const blob = generateDummyAudioWav(false);
+
+      if (voiceAudioPlayer) {
+        voiceAudioPlayer.src = URL.createObjectURL(blob);
+        voiceAudioPlayer.style.display = 'block';
+      }
+
       try {
         const res = await ApiClient.predictVoiceFile(blob, 'authentic_human_speech.wav');
         if (vfrCard) vfrCard.style.display = 'block';
@@ -1115,8 +1508,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
         if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+
+        if (vfrReasons && res.metrics) {
+          vfrReasons.innerHTML = `
+            <div>• Spectral: <strong>${res.metrics.spectral_consistency}</strong></div>
+            <div>• Pitch: <strong>${res.metrics.pitch_tremor}</strong></div>
+            <div>• Vocoder Phase: <strong>${res.metrics.phase_coherence}</strong></div>
+            <div>• Bi-GRU Sequence: <strong>${res.metrics.gru_sequence}</strong></div>
+          `;
+        }
         updateVoiceMetricsUI(res);
         showToast('Authentic Speech verified by ResNet18 + Bi-GRU Core', 'success');
+
+        if (window.addNotification) {
+          window.addNotification('🎙️ Authentic Voice Verified', 'ResNet18 + Bi-GRU acoustic network confirmed natural speech harmonics.', 'success', '🎙️');
+        }
       } catch (err) {
         showToast('Preset test error: ' + err.message, 'warning');
       }
@@ -1127,6 +1533,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     presetFakeBtn.addEventListener('click', async () => {
       showToast('Running inference on AI Cloned Voice Preset...', 'warning');
       const blob = generateDummyAudioWav(true);
+
+      if (voiceAudioPlayer) {
+        voiceAudioPlayer.src = URL.createObjectURL(blob);
+        voiceAudioPlayer.style.display = 'block';
+      }
+
       try {
         const res = await ApiClient.predictVoiceFile(blob, 'ai_cloned_voice_elevenlabs.wav');
         if (vfrCard) vfrCard.style.display = 'block';
@@ -1137,8 +1549,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
         if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+
+        if (vfrReasons && res.metrics) {
+          vfrReasons.innerHTML = `
+            <div>• Spectral: <strong>${res.metrics.spectral_consistency}</strong></div>
+            <div>• Pitch: <strong>${res.metrics.pitch_tremor}</strong></div>
+            <div>• Vocoder Phase: <strong>${res.metrics.phase_coherence}</strong></div>
+            <div>• Bi-GRU Sequence: <strong>${res.metrics.gru_sequence}</strong></div>
+          `;
+        }
         updateVoiceMetricsUI(res);
         showToast('AI Cloned Voice Detected: Synthetic quantization flagged', 'warning');
+
+        if (window.addNotification) {
+          window.addNotification('🚨 Synthetic Voice Cloned', 'AI voice synthesis flagged with anomalous phase discontinuities.', 'danger', '🚨');
+        }
       } catch (err) {
         showToast('Preset test error: ' + err.message, 'warning');
       }

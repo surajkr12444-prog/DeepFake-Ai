@@ -234,6 +234,16 @@ class UIManager {
 
       // Trigger siren sound
       this.playSiren();
+
+      // Dispatch alert to Notification Center (throttled to avoid flooding)
+      const now = Date.now();
+      if (!this.lastNotifTime || now - this.lastNotifTime > 10000) {
+        this.lastNotifTime = now;
+        if (window.addNotification) {
+          const reasonStr = (f.reasons && f.reasons.length > 0) ? f.reasons[0] : 'Synthetic manipulation confirmed';
+          window.addNotification('🚨 Deepfake Threat Flagged', `${reasonStr} (${Math.round(fusedScore)}% threat).`, 'danger', '🚨');
+        }
+      }
     } else {
       if (this.el.redAlertBanner) this.el.redAlertBanner.style.display = 'none';
       if (this.el.hudRedAlertTag) this.el.hudRedAlertTag.style.display = 'none';
