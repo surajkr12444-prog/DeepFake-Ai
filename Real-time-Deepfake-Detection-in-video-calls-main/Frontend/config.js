@@ -121,17 +121,64 @@ const Config = (() => {
   return obj;
 })();
 
+// Singleton AudioContext helper to prevent exceeding browser hardware context limits
+let _sharedAudioCtx = null;
+function getSharedAudioContext() {
+  if (!_sharedAudioCtx || _sharedAudioCtx.state === 'closed') {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      _sharedAudioCtx = new AudioCtx();
+    }
+  }
+  if (_sharedAudioCtx && _sharedAudioCtx.state === 'suspended') {
+    _sharedAudioCtx.resume().catch(() => {});
+  }
+  return _sharedAudioCtx;
+}
+
+// Direct Float32Array PCM to 16-bit Mono WAV Blob encoder (RIFF/WAV standard)
+function pcmToWavBlob(pcmData, sampleRate = 16000) {
+  const numChannels = 1;
+  const targetLength = pcmData.length;
+  const wavBuffer = new ArrayBuffer(44 + targetLength * 2);
+  const view = new DataView(wavBuffer);
+  const writeStr = (offset, str) => {
+    for (let j = 0; j < str.length; j++) view.setUint8(offset + j, str.charCodeAt(j));
+  };
+
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + targetLength * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM format
+  view.setUint16(22, numChannels, true); // Mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); // Byte rate
+  view.setUint16(32, 2, true); // Block align
+  view.setUint16(34, 16, true); // Bits per sample
+  writeStr(36, 'data');
+  view.setUint32(40, targetLength * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < targetLength; i++) {
+    const s = Math.max(-1, Math.min(1, pcmData[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    offset += 2;
+  }
+
+  return new Blob([view], { type: 'audio/wav' });
+}
+
 // Convert browser WebM/Opus or any audio blob to 16kHz 16-bit Mono WAV PCM
 async function audioBlobToWav(audioBlob) {
   try {
     const arrayBuffer = await audioBlob.arrayBuffer();
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return audioBlob;
-    const tempCtx = new AudioCtx();
-    const audioBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+    const ctx = getSharedAudioContext();
+    if (!ctx) return audioBlob;
 
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
     const sampleRate = 16000;
-    const numChannels = 1;
     // Resample / downmix to 16kHz mono
     const ratio = audioBuffer.sampleRate / sampleRate;
     const targetLength = Math.round(audioBuffer.length / ratio);
@@ -146,37 +193,7 @@ async function audioBlobToWav(audioBlob) {
       pcmData[i] = val;
     }
 
-    try { tempCtx.close(); } catch (_) {}
-
-    // Encode standard 44-byte RIFF/WAV header
-    const wavBuffer = new ArrayBuffer(44 + targetLength * 2);
-    const view = new DataView(wavBuffer);
-    const writeStr = (offset, str) => {
-      for (let j = 0; j < str.length; j++) view.setUint8(offset + j, str.charCodeAt(j));
-    };
-
-    writeStr(0, 'RIFF');
-    view.setUint32(4, 36 + targetLength * 2, true);
-    writeStr(8, 'WAVE');
-    writeStr(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true); // PCM format
-    view.setUint16(22, numChannels, true); // Mono
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * 2, true); // Byte rate
-    view.setUint16(32, 2, true); // Block align
-    view.setUint16(34, 16, true); // Bits per sample
-    writeStr(36, 'data');
-    view.setUint32(40, targetLength * 2, true);
-
-    let offset = 44;
-    for (let i = 0; i < targetLength; i++) {
-      const s = Math.max(-1, Math.min(1, pcmData[i]));
-      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-      offset += 2;
-    }
-
-    return new Blob([view], { type: 'audio/wav' });
+    return pcmToWavBlob(pcmData, sampleRate);
   } catch (err) {
     console.warn('[AudioWav] Conversion fallback to original blob:', err);
     return audioBlob;
@@ -184,4 +201,6 @@ async function audioBlobToWav(audioBlob) {
 }
 
 window.Config = Config;
+window.getSharedAudioContext = getSharedAudioContext;
+window.pcmToWavBlob = pcmToWavBlob;
 window.audioBlobToWav = audioBlobToWav;

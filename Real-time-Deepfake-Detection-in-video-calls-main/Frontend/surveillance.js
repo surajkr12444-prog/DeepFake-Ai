@@ -146,11 +146,25 @@ class LiveSurveillanceController {
         this.ui.updateHardwareBadges(true, false, this.isSimulated ? 'simulated' : 'live');
       }
 
-      // Show video feed
-      if (this.ui.el.videoPlaceholder) this.ui.el.videoPlaceholder.style.display = 'none';
-      if (this.ui.el.overlayCanvas) this.ui.el.overlayCanvas.style.display = 'block';
-      if (this.ui.el.scanLine) this.ui.el.scanLine.style.display = 'block';
-      if (this.ui.el.hudInfo) this.ui.el.hudInfo.style.display = 'flex';
+      // Show video feed or audio-only surveillance mode
+      if (!this.media.cameraActive && this.media.micActive) {
+        if (this.ui.el.videoPlaceholder) {
+          this.ui.el.videoPlaceholder.style.display = 'flex';
+          this.ui.el.videoPlaceholder.innerHTML = `
+            <div class="video-idle-icon" style="color: #10b981; font-size: 42px;">🎙️</div>
+            <p style="color: #10b981; font-weight: 600; font-size: 16px; margin-top: 8px;">Microphone Surveillance Active</p>
+            <p class="video-idle-sub" style="max-width: 380px;">Streaming live vocal audio to DeepShield AI Core • Bi-GRU & ResNet18 acoustic forensics active</p>
+          `;
+        }
+        if (this.ui.el.overlayCanvas) this.ui.el.overlayCanvas.style.display = 'none';
+        if (this.ui.el.scanLine) this.ui.el.scanLine.style.display = 'block';
+        if (this.ui.el.hudInfo) this.ui.el.hudInfo.style.display = 'flex';
+      } else {
+        if (this.ui.el.videoPlaceholder) this.ui.el.videoPlaceholder.style.display = 'none';
+        if (this.ui.el.overlayCanvas) this.ui.el.overlayCanvas.style.display = 'block';
+        if (this.ui.el.scanLine) this.ui.el.scanLine.style.display = 'block';
+        if (this.ui.el.hudInfo) this.ui.el.hudInfo.style.display = 'flex';
+      }
 
       if (!this.isSimulated) {
         // 3. Create Backend Surveillance Session on Live Server

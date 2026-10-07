@@ -323,7 +323,14 @@ class UIManager {
     if (this.el.scanLine) this.el.scanLine.style.display = 'none';
     if (this.el.webcamVideo) this.el.webcamVideo.style.display = 'none';
     if (this.el.overlayCanvas) this.el.overlayCanvas.style.display = 'none';
-    if (this.el.videoPlaceholder) this.el.videoPlaceholder.style.display = 'flex';
+    if (this.el.videoPlaceholder) {
+      this.el.videoPlaceholder.style.display = 'flex';
+      this.el.videoPlaceholder.innerHTML = `
+        <div class="video-idle-icon">🎥</div>
+        <p>Camera Feed Inactive</p>
+        <p class="video-idle-sub">Click <strong>Start Detection</strong> or <strong>Test Video File</strong> to begin AI analysis</p>
+      `;
+    }
     if (this.el.toggleDetectionBtn) {
       this.el.toggleDetectionBtn.innerHTML = '▶ Start Detection';
       this.el.toggleDetectionBtn.style.background = '';
