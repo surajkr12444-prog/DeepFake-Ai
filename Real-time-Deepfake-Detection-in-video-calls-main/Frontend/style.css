@@ -594,20 +594,28 @@ body {
 .section-switcher-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--neu-surface-inset);
   box-shadow: var(--neu-shadow-inset);
   padding: 8px 12px;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(0, 0, 0, 0.5);
   margin-bottom: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.section-switcher-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .switch-btn {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 10px 22px;
+  padding: 10px 20px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
@@ -616,6 +624,8 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.22s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .switch-btn:hover {
@@ -647,7 +657,7 @@ body {
    ========================================================================== */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -656,13 +666,14 @@ body {
   box-shadow: var(--neu-shadow-raised);
   border: var(--neu-border);
   border-radius: var(--radius-md);
-  padding: 22px 24px;
+  padding: 20px 22px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  min-width: 0;
 }
 
 .stat-card:hover {
@@ -671,13 +682,13 @@ body {
 }
 
 .stat-icon {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   flex-shrink: 0;
   background: var(--neu-surface-inset);
   box-shadow: var(--neu-shadow-inset-sm);
@@ -689,12 +700,22 @@ body {
 .stat-red { color: #f87171; }
 .stat-purple { color: #c084fc; }
 
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
 .stat-value {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   font-family: var(--font-mono);
   color: #fff;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-label {
@@ -702,18 +723,22 @@ body {
   color: var(--text-secondary);
   font-weight: 500;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-badge {
-  position: absolute;
-  top: 18px;
-  right: 18px;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
   box-shadow: inset 1px 1px 3px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  margin-left: auto;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .badge-blue { background: #16243d; color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
@@ -726,7 +751,7 @@ body {
    ========================================================================== */
 .main-panel-row {
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -735,17 +760,20 @@ body {
   box-shadow: var(--neu-shadow-raised-lg);
   border: var(--neu-border);
   border-radius: var(--radius-lg);
-  padding: 26px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   position: relative;
+  min-width: 0;
 }
 
 .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .panel-title {
@@ -755,12 +783,14 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .panel-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* Tactile Neumorphic Buttons */
@@ -769,7 +799,7 @@ body {
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-sm);
-  padding: 10px 20px;
+  padding: 9px 18px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -778,6 +808,7 @@ body {
   gap: 8px;
   transition: all 0.2s ease;
   box-shadow: 5px 5px 14px rgba(0, 0, 0, 0.5), -3px -3px 10px rgba(255, 255, 255, 0.04), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  white-space: nowrap;
 }
 
 .panel-btn:hover {
@@ -926,6 +957,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 16px;
   padding: 12px 18px;
   background: var(--neu-surface-inset);
@@ -1151,7 +1184,7 @@ body {
    ========================================================================== */
 .bottom-row {
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -1424,6 +1457,8 @@ body {
 /* ==========================================================================
    Voice Recognition Studio (Neumorphic Sound Lab)
    ========================================================================== */
+#unified-surveillance-section,
+.surveillance-section-container,
 .voice-section-container,
 .video-section-container,
 .analytics-section-container,
@@ -1899,8 +1934,8 @@ body {
 /* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
-@media (max-width: 1200px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1380px) {
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .main-panel-row, .bottom-row { grid-template-columns: 1fr; }
 }
 
