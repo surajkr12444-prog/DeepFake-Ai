@@ -33,13 +33,9 @@
 
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" id="nav-dashboard">
-          <span class="nav-icon">⬡</span>
-          <span class="nav-label">Live Surveillance</span>
-          <span class="nav-badge live-badge" style="margin-left: auto;">LIVE</span>
-        </a>
-        <a href="#" class="nav-item" id="nav-video">
           <span class="nav-icon">📹</span>
-          <span class="nav-label">Video Deepfake</span>
+          <span class="nav-label">Live Video Deepfake</span>
+          <span class="nav-badge live-badge" style="margin-left: auto;">LIVE</span>
         </a>
         <a href="#" class="nav-item" id="nav-voice">
           <span class="nav-icon">🎙️</span>
@@ -215,7 +211,7 @@
             <div class="panel-header">
               <div class="panel-title">
                 <span class="panel-title-icon">📹</span>
-                Live Stream Surveillance
+                Live Video Deepfake Surveillance
               </div>
               <div class="panel-actions">
                 <button class="panel-btn" id="toggle-detection">▶ Start Detection</button>
@@ -243,7 +239,7 @@
               <div class="video-placeholder" id="video-placeholder">
                 <div class="video-idle-icon">🎥</div>
                 <p>Camera Feed Inactive</p>
-                <p class="video-idle-sub">Click <strong>Start Detection</strong> or <strong>Test Video File</strong> to begin AI analysis</p>
+                <p class="video-idle-sub">Click <strong>Start Detection</strong>, <strong>Test Video File</strong>, or choose a preset below</p>
               </div>
 
               <video id="webcam-video" autoplay muted playsinline style="display:none;"></video>
@@ -277,6 +273,14 @@
               <span class="vm-item"><strong id="cam-status-indicator" style="color: #94a3b8;">CAM: OFF</strong></span>
               <span class="vm-item"><strong id="mic-status-indicator" style="color: #94a3b8;">MIC: OFF</strong></span>
               <span class="vm-item">Engine: <strong>AI Risk Fusion Core</strong></span>
+            </div>
+
+            <!-- Quick Forensic Test Presets Strip -->
+            <div class="video-preset-strip" style="display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle); flex-wrap: wrap;">
+              <span class="preset-label" style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Forensic Presets:</span>
+              <button class="preset-btn preset-real" id="preset-real-video" type="button" title="Simulate Authentic Human Video Stream">✓ Authentic Human</button>
+              <button class="preset-btn preset-fake" id="preset-fake-video" type="button" title="Simulate Face-Swap Deepfake Attack">🚨 Face-Swap Deepfake</button>
+              <button class="preset-btn preset-amber" id="preset-replay-video" type="button" title="Simulate Photo / Screen Replay Attack">⚠️ Photo Replay Attack</button>
             </div>
 
           </div>
@@ -495,140 +499,7 @@
 
         </div> <!-- End #unified-surveillance-section -->
 
-        <!-- ===== SECTION 2: DEDICATED VIDEO RECOGNITION STUDIO ===== -->
-        <div class="video-section-container" id="video-recognition-section" style="display: none;">
-          <div class="voice-hero-banner" style="border-color: rgba(6, 182, 212, 0.35); background: linear-gradient(135deg, rgba(8, 47, 73, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);">
-            <div class="voice-hero-content">
-              <div class="voice-badge" style="color: #38bdf8;">📹 COMPUTER VISION FORENSICS</div>
-              <h2>Video Recognition & Visual Deepfake Analysis</h2>
-              <p>Multi-cue visual forensics combining 2D Fast Fourier Transform (FFT) spectral roll-off, Laplacian skin micro-texture gradient analysis, and facial boundary seam detection.</p>
-            </div>
-            <div class="voice-model-badge" style="border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1);">
-              <span style="color: #94a3b8;">Forensics Engine</span>
-              <strong style="color: #38bdf8;">Multi-Cue CV Core Active</strong>
-            </div>
-          </div>
-
-          <div class="voice-grid-row">
-            <!-- Video Panel 1: Live Video / Camera Forensic Scanner -->
-            <div class="glass-panel voice-panel">
-              <div class="panel-header">
-                <div class="panel-title">
-                  <span class="panel-title-icon">👁️</span>
-                  Live Video Forensics & Facial Biometrics
-                </div>
-                <div class="panel-actions">
-                  <button class="panel-btn" id="vr-toggle-btn">▶ Start Video Scanner</button>
-                </div>
-              </div>
-
-              <!-- Dedicated Video Player Frame -->
-              <div class="video-wrapper" id="vr-video-wrapper" style="height: 280px; margin-bottom: 16px;">
-                <div class="video-placeholder" id="vr-placeholder">
-                  <div class="video-idle-icon">📹</div>
-                  <p>Video Forensics Scanner Standby</p>
-                  <p class="video-idle-sub">Click <strong>Start Video Scanner</strong> or choose a preset below</p>
-                </div>
-                <video id="vr-video" autoplay muted playsinline style="display:none;"></video>
-                <canvas id="vr-canvas" style="display:none;"></canvas>
-                <div class="hud-red-alert-tag" id="vr-red-alert-tag" style="display: none;">
-                  <span>🚨 RED CAUTION: DEEPFAKE VIDEO CONFIRMED</span>
-                </div>
-                <div class="hud-corner hud-tl"></div>
-                <div class="hud-corner hud-tr"></div>
-                <div class="hud-corner hud-bl"></div>
-                <div class="hud-corner hud-br"></div>
-              </div>
-
-              <!-- Video Threat Verdict Banner -->
-              <div class="voice-verdict-card" id="vr-verdict-card">
-                <div class="voice-verdict-icon" id="vr-verdict-icon">👁️</div>
-                <div class="voice-verdict-body">
-                  <div class="voice-verdict-title" id="vr-verdict-title">Forensic Engine Ready</div>
-                  <div class="voice-verdict-desc" id="vr-verdict-desc">Analyzing 2D FFT spectral roll-off, facial skin pores, and boundary seams.</div>
-                </div>
-                <div class="voice-score-pill" id="vr-score-pill">--% AUTHENTIC</div>
-              </div>
-
-              <!-- Live Video Forensics Metrics Matrix -->
-              <div class="voice-metrics-grid">
-                <div class="vm-card">
-                  <div class="vm-card-title">2D FFT Spectral Integrity</div>
-                  <div class="vm-card-val" id="vr-m-fft">Standby</div>
-                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vrb-fft" style="width: 50%; background: linear-gradient(90deg, #3b82f6, #06b6d4);"></div></div>
-                </div>
-                <div class="vm-card">
-                  <div class="vm-card-title">Skin Texture (Laplacian)</div>
-                  <div class="vm-card-val" id="vr-m-skin">Standby</div>
-                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vrb-skin" style="width: 50%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div></div>
-                </div>
-                <div class="vm-card">
-                  <div class="vm-card-title">Boundary Seam Disparity</div>
-                  <div class="vm-card-val" id="vr-m-seam">Standby</div>
-                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vrb-seam" style="width: 50%; background: linear-gradient(90deg, #f59e0b, #ef4444);"></div></div>
-                </div>
-                <div class="vm-card">
-                  <div class="vm-card-title">Micro-Motion Liveness</div>
-                  <div class="vm-card-val" id="vr-m-live">Standby</div>
-                  <div class="vm-card-bar"><div class="vm-bar-inner" id="vrb-live" style="width: 50%; background: linear-gradient(90deg, #8b5cf6, #3b82f6);"></div></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Video Panel 2: Video File Deepfake Inspector & Presets -->
-            <div class="glass-panel voice-panel">
-              <div class="panel-header">
-                <div class="panel-title">
-                  <span class="panel-title-icon">🎬</span>
-                  Video File Deepfake Recognition
-                </div>
-              </div>
-
-              <div class="voice-upload-zone" id="vr-drop-zone">
-                <div class="voice-upload-icon">🎥</div>
-                <div class="voice-upload-text">Upload video file for multi-cue deepfake inspection</div>
-                <div class="voice-upload-sub">Supports MP4, WebM, AVI, MOV up to 100MB</div>
-                <label class="panel-btn" for="vr-file-input" style="cursor: pointer; margin-top: 14px;">
-                  📂 Choose Video File
-                </label>
-                <input type="file" id="vr-file-input" accept="video/*" style="display: none;" />
-              </div>
-
-              <!-- Quick Video Test Presets -->
-              <div class="voice-preset-row">
-                <span class="preset-label">Forensic Presets:</span>
-                <button class="preset-btn preset-real" id="preset-real-video">✓ Authentic Human Video</button>
-                <button class="preset-btn preset-fake" id="preset-fake-video">🚨 Face-Swap Deepfake</button>
-                <button class="preset-btn preset-amber" id="preset-replay-video">⚠️ Photo Replay Attack</button>
-              </div>
-
-              <!-- Video File Result Card -->
-              <div class="voice-file-result" id="vr-file-result" style="display: none;">
-                <div class="vfr-header">
-                  <span id="vr-res-filename">video_test.mp4</span>
-                  <span class="vfr-badge" id="vr-res-badge">ANALYSIS VERIFIED</span>
-                </div>
-                <div class="vfr-body">
-                  <div class="vfr-metric-row">
-                    <span>Forensic Classification:</span>
-                    <strong id="vr-res-label">Authentic Natural Face</strong>
-                  </div>
-                  <div class="vfr-metric-row">
-                    <span>Biometric Authenticity:</span>
-                    <strong id="vr-res-auth" style="color: #10b981;">91.4%</strong>
-                  </div>
-                  <div class="vfr-metric-row">
-                    <span>Synthetic Threat Risk:</span>
-                    <strong id="vr-res-risk" style="color: #ef4444;">8.6%</strong>
-                  </div>
-                </div>
-                <div class="vfr-reasons" id="vr-res-reasons" style="margin-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.5;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== SECTION 3: DEDICATED VOICE RECOGNITION STUDIO ===== -->
+        <!-- ===== SECTION 2: DEDICATED VOICE RECOGNITION STUDIO ===== -->
         <div class="voice-section-container" id="voice-recognition-section" style="display: none;">
           <div class="voice-hero-banner">
             <div class="voice-hero-content">
