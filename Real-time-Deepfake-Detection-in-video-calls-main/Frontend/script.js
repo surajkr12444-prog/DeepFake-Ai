@@ -415,6 +415,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // 15b. Neumorphic Glow / Matte Toggle
+  if (elements.themeToggle) {
+    elements.themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('neu-accent-glow');
+      const isGlow = document.body.classList.contains('neu-accent-glow');
+      elements.themeToggle.textContent = isGlow ? '✨' : '🌙';
+      showToast(isGlow ? 'Neumorphic Tactile Glow Mode Active' : 'Neumorphic Dark Matte Mode Active', 'info');
+    });
+  }
+
   // =========================================================================
   // 16. Section Switcher (Unified vs Dedicated Video vs Dedicated Voice)
   // =========================================================================
