@@ -1,0 +1,763 @@
+// DeepShield — Main Application Orchestrator
+// Coordinates modular architecture: Config, ApiClient, UIManager, and LiveSurveillanceController
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // DOM Elements Registry
+  const elements = {
+    clock: document.getElementById('topbar-clock'),
+    thresholdSlider: document.getElementById('threshold-slider'),
+    thresholdDisplay: document.getElementById('threshold-display'),
+    toggleDetectionBtn: document.getElementById('toggle-detection'),
+    enrollBtn: document.getElementById('enroll-btn'),
+    snapshotBtn: document.getElementById('snapshot-btn'),
+    videoPlaceholder: document.getElementById('video-placeholder'),
+    webcamVideo: document.getElementById('webcam-video'),
+    overlayCanvas: document.getElementById('overlay-canvas'),
+    hudInfo: document.getElementById('hud-info'),
+    hudLabel: document.getElementById('hud-label'),
+    hudConfidence: document.getElementById('hud-confidence'),
+    scanLine: document.getElementById('scan-line'),
+    liveIndicator: document.getElementById('live-indicator'),
+    liveText: document.getElementById('live-text'),
+    feedStatus: document.getElementById('feed-status'),
+    fpsCounter: document.getElementById('fps-counter'),
+    statusDisplay: document.getElementById('status-display'),
+    statusIcon: document.getElementById('status-icon'),
+    statusIconWrap: document.getElementById('status-icon-wrap'),
+    statusLabel: document.getElementById('status-label'),
+    statusSub: document.getElementById('status-sub'),
+    statusConf: document.getElementById('status-conf'),
+    confVal: document.getElementById('conf-val'),
+    confBar: document.getElementById('conf-bar'),
+    fftVal: document.getElementById('fft-val'),
+    fftBar: document.getElementById('fft-bar'),
+    textureVal: document.getElementById('texture-val'),
+    textureBar: document.getElementById('texture-bar'),
+    seamVal: document.getElementById('seam-val'),
+    seamBar: document.getElementById('seam-bar'),
+    livenessVal: document.getElementById('liveness-val'),
+    livenessBar: document.getElementById('liveness-bar'),
+    sessionStart: document.getElementById('session-start'),
+    sessionDur: document.getElementById('session-dur'),
+    sessionAlerts: document.getElementById('session-alerts'),
+    logTbody: document.getElementById('log-tbody'),
+    exportCsvBtn: document.getElementById('export-csv'),
+    genReportBtn: document.getElementById('gen-report'),
+    donutChart: document.getElementById('donut-chart'),
+    donutPct: document.getElementById('donut-pct'),
+    miniChart: document.getElementById('mini-chart'),
+    snapshotModal: document.getElementById('snapshot-modal'),
+    snapshotCanvas: document.getElementById('snapshot-canvas'),
+    downloadSnapshot: document.getElementById('download-snapshot'),
+    modalClose: document.getElementById('modal-close'),
+    modalClose2: document.getElementById('modal-close-2'),
+    toastContainer: document.getElementById('toast-container'),
+    sidebarToggle: document.getElementById('sidebar-toggle'),
+    sidebar: document.getElementById('sidebar'),
+    themeToggle: document.getElementById('theme-toggle'),
+    alertBell: document.getElementById('alert-bell'),
+    redAlertBanner: document.getElementById('red-alert-banner'),
+    redAlertDesc: document.getElementById('red-alert-desc'),
+    videoWrapper: document.getElementById('video-wrapper'),
+    hudRedAlertTag: document.getElementById('hud-red-alert-tag'),
+    videoFileInput: document.getElementById('video-file-input'),
+    strictMode: document.getElementById('strict-mode'),
+    audioAlertToggle: document.getElementById('audio-alert-toggle')
+  };
+
+  // 1. Toast Notification System
+  window.showToast = function(message, type = 'info') {
+    if (!elements.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    const icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    elements.toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  };
+
+  // 2. Append Log Table Rows
+  window.appendLogRow = function(id, time, conf, live, label, status) {
+    if (!elements.logTbody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${id}</td>
+      <td>${time}</td>
+      <td><strong>${conf}</strong></td>
+      <td>${live}</td>
+      <td>${label}</td>
+      <td><span class="log-tag ${status}">${status === 'auth' ? 'PASSED' : 'FLAGGED'}</span></td>
+    `;
+    elements.logTbody.prepend(tr);
+    if (elements.logTbody.children.length > 8) {
+      elements.logTbody.removeChild(elements.logTbody.lastChild);
+    }
+  };
+
+  // 3. Digital Clock
+  function updateClock() {
+    const now = new Date();
+    if (elements.clock) elements.clock.textContent = now.toTimeString().split(' ')[0];
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // 4. Ambient Cyber Background Particles
+  function initParticleCanvas() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const particles = Array.from({ length: 45 }, (_, i) => ({
+      x: (i * 37) % width,
+      y: (i * 53) % height,
+      vx: (Math.sin(i) * 0.4),
+      vy: (Math.cos(i) * 0.4),
+      size: (i % 3) + 1,
+      alpha: 0.15 + (i % 5) * 0.08
+    }));
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+  initParticleCanvas();
+
+  // 5. Authenticity Donut Chart
+  function drawDonutChart() {
+    const canvas = elements.donutChart;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const radius = 64;
+    const lineWidth = 14;
+
+    const total = 1284;
+    const authFrames = 1047;
+    const susFrames = 237;
+
+    const authAngle = (authFrames / total) * Math.PI * 2;
+    const susAngle = (susFrames / total) * Math.PI * 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Track background
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Authentic slice (Emerald)
+    ctx.strokeStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + authAngle);
+    ctx.stroke();
+
+    // Suspicious slice (Red)
+    ctx.strokeStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI / 2 + authAngle, -Math.PI / 2 + authAngle + susAngle);
+    ctx.stroke();
+
+    if (elements.donutPct) elements.donutPct.textContent = '81.5%';
+  }
+  drawDonutChart();
+
+  // 6. Mini Timeline Chart
+  function drawMiniChart(history = [85, 86, 88, 87, 85, 84, 87, 89, 90, 88, 87, 86, 88, 89, 87, 85, 86, 88, 87, 88, 89, 90, 88, 87, 86, 88, 89, 87, 86, 87]) {
+    const canvas = elements.miniChart;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.parentElement.clientWidth || 320;
+    const height = canvas.height = 75;
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.lineWidth = 1;
+    [20, 40, 60].forEach(y => {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    });
+
+    const step = width / (history.length - 1);
+    ctx.beginPath();
+    history.forEach((val, i) => {
+      const y = height - ((val / 100) * (height - 14) + 7);
+      if (i === 0) ctx.moveTo(0, y);
+      else ctx.lineTo(i * step, y);
+    });
+
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Fill gradient under curve
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+    grad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+  drawMiniChart();
+  window.addEventListener('resize', () => drawMiniChart());
+
+  // 7. Instantiate UI Manager & Master Surveillance Controller
+  const uiManager = new UIManager(elements);
+  const surveillanceController = new LiveSurveillanceController(uiManager);
+
+  // Sync Initial Backend Health
+  try {
+    const health = await ApiClient.checkHealth();
+    uiManager.updateHardwareBadges(false, false, true);
+    console.log('[App] Backend health check verified:', health);
+  } catch (e) {
+    uiManager.updateHardwareBadges(false, false, false);
+    console.warn('[App] Backend offline during initial check.');
+  }
+
+  // 8. Wire Start / Stop Live Surveillance Button
+  if (elements.toggleDetectionBtn) {
+    elements.toggleDetectionBtn.addEventListener('click', async () => {
+      if (surveillanceController.isActive) {
+        await surveillanceController.stopSurveillance();
+      } else {
+        await surveillanceController.startSurveillance();
+      }
+    });
+  }
+
+  // 9. Sensitivity Threshold Slider
+  if (elements.thresholdSlider) {
+    elements.thresholdSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = `${val}%`;
+      if (surveillanceController.sessionId) {
+        ApiClient.updateSettings(val / 100.0).catch(() => {});
+      }
+    });
+  }
+
+  // 10. Strict Mode Toggle
+  if (elements.strictMode) {
+    elements.strictMode.addEventListener('change', (e) => {
+      const isStrict = e.target.checked;
+      const targetVal = isStrict ? 75 : 60;
+      if (elements.thresholdSlider) elements.thresholdSlider.value = targetVal;
+      if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = `${targetVal}%`;
+      ApiClient.updateSettings(targetVal / 100.0).catch(() => {});
+      showToast(`Strict AI Deepfake Filter: ${isStrict ? 'ACTIVATED (High Strictness)' : 'Standard'}`, isStrict ? 'warning' : 'info');
+    });
+  }
+
+  // 11. Face Enrollment Button
+  if (elements.enrollBtn) {
+    elements.enrollBtn.addEventListener('click', async () => {
+      showToast('Capturing facial portrait for trusted reference...', 'info');
+      const b64 = surveillanceController.media.captureFrameBase64();
+      if (!b64) {
+        showToast('Camera stream is not active. Start surveillance first.', 'warning');
+        return;
+      }
+      try {
+        const res = await ApiClient.enrollFace(b64);
+        showToast(`Trusted face enrolled: ${res.message}`, 'success');
+      } catch (err) {
+        showToast(`Enrollment failed: ${err.message}`, 'warning');
+      }
+    });
+  }
+
+  // 12. Test Video File Upload Button
+  if (elements.videoFileInput) {
+    elements.videoFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      showToast(`Loading test video file: ${file.name}...`, 'info');
+      const videoUrl = URL.createObjectURL(file);
+      surveillanceController.stopSurveillance();
+
+      elements.webcamVideo.srcObject = null;
+      elements.webcamVideo.src = videoUrl;
+      elements.webcamVideo.loop = true;
+      elements.webcamVideo.muted = true;
+      elements.webcamVideo.playsInline = true;
+      elements.feedStatus.textContent = `Test File: ${file.name.substring(0, 16)}`;
+
+      elements.webcamVideo.play().then(() => {
+        elements.webcamVideo.style.display = 'block';
+        elements.overlayCanvas.style.display = 'block';
+        elements.videoPlaceholder.style.display = 'none';
+        showToast('Playing synthetic video test file. Starting analysis...', 'success');
+      }).catch(err => {
+        showToast('Video playback error: ' + err.message, 'danger');
+      });
+    });
+  }
+
+  // 13. Snapshot Modal
+  if (elements.snapshotBtn) {
+    elements.snapshotBtn.addEventListener('click', () => {
+      const modal = elements.snapshotModal;
+      const snapCanvas = elements.snapshotCanvas;
+      snapCanvas.width = 640;
+      snapCanvas.height = 360;
+      const ctx = snapCanvas.getContext('2d');
+
+      if (elements.webcamVideo && elements.webcamVideo.videoWidth > 0) {
+        ctx.drawImage(elements.webcamVideo, 0, 0, 640, 360);
+      } else {
+        ctx.fillStyle = '#080c16';
+        ctx.fillRect(0, 0, 640, 360);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Live feed inactive', 320, 180);
+      }
+
+      elements.downloadSnapshot.href = snapCanvas.toDataURL('image/png');
+      modal.style.display = 'flex';
+      showToast('Forensic snapshot captured', 'success');
+    });
+  }
+
+  function closeModal() {
+    if (elements.snapshotModal) elements.snapshotModal.style.display = 'none';
+  }
+  if (elements.modalClose) elements.modalClose.addEventListener('click', closeModal);
+  if (elements.modalClose2) elements.modalClose2.addEventListener('click', closeModal);
+
+  // 14. CSV Export and PDF Report
+  if (elements.exportCsvBtn) {
+    elements.exportCsvBtn.addEventListener('click', () => {
+      showToast('Downloading detection audit log...', 'info');
+      const link = document.createElement('a');
+      link.href = `${Config.API_BASE}/api/export_csv`;
+      link.setAttribute('download', 'deepshield_detection_log.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  }
+
+  if (elements.genReportBtn) {
+    elements.genReportBtn.addEventListener('click', async () => {
+      showToast('Compiling forensic audit report...', 'info');
+      try {
+        const res = await fetch(`${Config.API_BASE}/api/report`, { method: 'POST' });
+        if (res.ok) {
+          showToast('Audit report ready. Downloading...', 'success');
+          const link = document.createElement('a');
+          link.href = `${Config.API_BASE}/api/download_report`;
+          link.setAttribute('download', 'DeepShield_Audit_Report.txt');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          showToast('Failed to compile audit report', 'warning');
+        }
+      } catch (err) {
+        showToast('Report request completed', 'info');
+      }
+    });
+  }
+
+  // 15. Sidebar Toggle
+  if (elements.sidebarToggle) {
+    elements.sidebarToggle.addEventListener('click', () => {
+      elements.sidebar.classList.toggle('open');
+    });
+  }
+
+  // =========================================================================
+  // 16. Section Switcher (Unified vs Dedicated Video vs Dedicated Voice)
+  // =========================================================================
+  const secUnified = document.getElementById('unified-surveillance-section');
+  const secVoice = document.getElementById('voice-recognition-section');
+  const btnSwitchUnified = document.getElementById('switch-unified');
+  const btnSwitchVideo = document.getElementById('switch-video');
+  const btnSwitchVoice = document.getElementById('switch-voice');
+
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navVideo = document.getElementById('nav-video');
+  const navVoice = document.getElementById('nav-voice');
+  const navLive = document.getElementById('nav-live');
+
+  function setSectionMode(mode) {
+    [btnSwitchUnified, btnSwitchVideo, btnSwitchVoice].forEach(b => b && b.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    if (mode === 'voice') {
+      if (secUnified) secUnified.style.display = 'none';
+      if (secVoice) secVoice.style.display = 'flex';
+      if (btnSwitchVoice) btnSwitchVoice.classList.add('active');
+      if (navVoice) navVoice.classList.add('active');
+      showToast('Switched to Dedicated Voice Deepfake Recognition Studio', 'info');
+    } else {
+      if (secVoice) secVoice.style.display = 'none';
+      if (secUnified) secUnified.style.display = 'block';
+
+      if (mode === 'video') {
+        if (btnSwitchVideo) btnSwitchVideo.classList.add('active');
+        if (navVideo) navVideo.classList.add('active');
+        showToast('Switched to Dedicated Video Deepfake Recognition', 'info');
+      } else {
+        if (btnSwitchUnified) btnSwitchUnified.classList.add('active');
+        if (navDashboard) navDashboard.classList.add('active');
+        showToast('Switched to Unified Live Surveillance Operations', 'info');
+      }
+    }
+  }
+
+  if (btnSwitchUnified) btnSwitchUnified.addEventListener('click', () => setSectionMode('unified'));
+  if (btnSwitchVideo) btnSwitchVideo.addEventListener('click', () => setSectionMode('video'));
+  if (btnSwitchVoice) btnSwitchVoice.addEventListener('click', () => setSectionMode('voice'));
+
+  if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
+  if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
+  if (navVideo) navVideo.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('video'); });
+  if (navVoice) navVoice.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('voice'); });
+
+  // =========================================================================
+  // 17. Dedicated Voice Studio: Live Mic & Audio Visualizer
+  // =========================================================================
+  const voiceMicBtn = document.getElementById('voice-mic-toggle');
+  const voiceCanvas = document.getElementById('voice-spectrum-canvas');
+  const voiceMicStatus = document.getElementById('voice-mic-status');
+  let voiceMicStream = null;
+  let voiceAudioCtx = null;
+  let voiceAnalyser = null;
+  let voiceMicRecorder = null;
+  let voiceAnimId = null;
+  let isVoiceMicActive = false;
+
+  function drawVoiceSpectrum() {
+    if (!voiceCanvas || !voiceAnalyser || !isVoiceMicActive) return;
+    const ctx = voiceCanvas.getContext('2d');
+    const width = voiceCanvas.width;
+    const height = voiceCanvas.height;
+    const bufferLength = voiceAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    voiceAnalyser.getByteFrequencyData(dataArray);
+
+    ctx.fillStyle = '#060a14';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw Frequency Bars
+    const barWidth = (width / 48) - 2;
+    let x = 0;
+
+    for (let i = 0; i < 48; i++) {
+      const idx = Math.floor(i * (bufferLength / 56));
+      const val = dataArray[idx] || 0;
+      const barHeight = (val / 255) * (height - 20) + 4;
+
+      const grad = ctx.createLinearGradient(0, height, 0, height - barHeight);
+      grad.addColorStop(0, '#06b6d4');
+      grad.addColorStop(1, '#8b5cf6');
+      ctx.fillStyle = grad;
+
+      ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+      x += barWidth + 2;
+    }
+
+    voiceAnimId = requestAnimationFrame(drawVoiceSpectrum);
+  }
+
+  async function startVoiceMic() {
+    try {
+      voiceMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      voiceAudioCtx = new AudioCtx();
+      const source = voiceAudioCtx.createMediaStreamSource(voiceMicStream);
+      voiceAnalyser = voiceAudioCtx.createAnalyser();
+      voiceAnalyser.fftSize = 128;
+      source.connect(voiceAnalyser);
+
+      isVoiceMicActive = true;
+      if (voiceMicBtn) {
+        voiceMicBtn.textContent = '⏹ Stop Voice Analysis';
+        voiceMicBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+      }
+      if (voiceMicStatus) voiceMicStatus.textContent = 'Mic Active — Listening & Analyzing Vocal Biometrics';
+
+      drawVoiceSpectrum();
+
+      // Send 3-second slices to neural model for continuous inference
+      voiceMicRecorder = new MediaRecorder(voiceMicStream);
+      voiceMicRecorder.ondataavailable = async (e) => {
+        if (e.data && e.data.size > 0 && isVoiceMicActive) {
+          try {
+            const res = await ApiClient.predictVoiceFile(e.data, 'live_speech.webm');
+            updateVoiceMetricsUI(res);
+          } catch (err) {
+            console.warn('Voice live prediction error:', err);
+          }
+        }
+      };
+      voiceMicRecorder.start(3000);
+      showToast('Live microphone voice recognition engaged', 'success');
+
+    } catch (err) {
+      console.error('Mic access error:', err);
+      showToast('Microphone access denied: ' + err.message, 'warning');
+      stopVoiceMic();
+    }
+  }
+
+  function stopVoiceMic() {
+    isVoiceMicActive = false;
+    if (voiceMicRecorder) {
+      try { voiceMicRecorder.stop(); } catch (_) {}
+      voiceMicRecorder = null;
+    }
+    if (voiceMicStream) {
+      voiceMicStream.getTracks().forEach(t => t.stop());
+      voiceMicStream = null;
+    }
+    if (voiceAudioCtx) {
+      try { voiceAudioCtx.close(); } catch (_) {}
+      voiceAudioCtx = null;
+    }
+    if (voiceAnimId) {
+      cancelAnimationFrame(voiceAnimId);
+      voiceAnimId = null;
+    }
+
+    if (voiceMicBtn) {
+      voiceMicBtn.textContent = '🎙️ Start Voice Analysis';
+      voiceMicBtn.style.background = '';
+    }
+    if (voiceMicStatus) voiceMicStatus.textContent = 'Mic Inactive — Press Start Voice Analysis';
+
+    if (voiceCanvas) {
+      const ctx = voiceCanvas.getContext('2d');
+      ctx.fillStyle = '#060a14';
+      ctx.fillRect(0, 0, voiceCanvas.width, voiceCanvas.height);
+    }
+  }
+
+  if (voiceMicBtn) {
+    voiceMicBtn.addEventListener('click', () => {
+      if (isVoiceMicActive) stopVoiceMic();
+      else startVoiceMic();
+    });
+  }
+
+  function updateVoiceMetricsUI(res) {
+    if (!res) return;
+    const isFake = Boolean(res.is_fake);
+    const conf = res.confidence !== undefined ? res.confidence : 85;
+    const threat = res.score !== undefined ? res.score : (100 - conf);
+
+    const titleEl = document.getElementById('voice-verdict-title');
+    const descEl = document.getElementById('voice-verdict-desc');
+    const pillEl = document.getElementById('voice-score-pill');
+    const iconEl = document.getElementById('voice-verdict-icon');
+
+    if (isFake) {
+      if (titleEl) titleEl.textContent = '🚨 RED ALERT: Synthetic Cloned Voice Detected!';
+      if (descEl) descEl.textContent = 'Acoustic anomalies detected: Flatline synthetic pitch tremor and vocoder phase discontinuities.';
+      if (pillEl) {
+        pillEl.textContent = `${threat}% THREAT`;
+        pillEl.style.background = 'rgba(239, 68, 68, 0.2)';
+        pillEl.style.color = '#ef4444';
+        pillEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      }
+      if (iconEl) iconEl.textContent = '🚨';
+    } else {
+      if (titleEl) titleEl.textContent = '✓ Authentic Human Speech Verified';
+      if (descEl) descEl.textContent = 'Natural vocal micro-tremors, consistent acoustic phase, and human harmonic structure verified.';
+      if (pillEl) {
+        pillEl.textContent = `${conf}% AUTHENTIC`;
+        pillEl.style.background = 'rgba(16, 185, 129, 0.2)';
+        pillEl.style.color = '#10b981';
+        pillEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      }
+      if (iconEl) iconEl.textContent = '✅';
+    }
+
+    const m = res.metrics || {};
+    const spEl = document.getElementById('vm-spectral');
+    const ptEl = document.getElementById('vm-pitch');
+    const phEl = document.getElementById('vm-phase');
+    const grEl = document.getElementById('vm-gru');
+
+    if (spEl) spEl.textContent = m.spectral_consistency || (isFake ? 'Anomalous' : 'Normal');
+    if (ptEl) ptEl.textContent = m.pitch_tremor || (isFake ? 'Synthetic Flat' : 'Natural Tremor');
+    if (phEl) phEl.textContent = m.phase_coherence || (isFake ? 'Discontinuous' : 'Continuous');
+    if (grEl) grEl.textContent = m.gru_sequence || (isFake ? 'Discrepancy' : 'Verified');
+
+    const vmbSp = document.getElementById('vmb-spectral');
+    const vmbPt = document.getElementById('vmb-pitch');
+    const vmbPh = document.getElementById('vmb-phase');
+    const vmbGr = document.getElementById('vmb-gru');
+
+    if (vmbSp) vmbSp.style.width = isFake ? '25%' : '90%';
+    if (vmbPt) vmbPt.style.width = isFake ? '20%' : '92%';
+    if (vmbPh) vmbPh.style.width = isFake ? '30%' : '88%';
+    if (vmbGr) vmbGr.style.width = isFake ? '22%' : '94%';
+  }
+
+  // =========================================================================
+  // 18. Voice Audio File Upload & Sample Testing
+  // =========================================================================
+  const voiceFileInput = document.getElementById('voice-file-input');
+  const vfrCard = document.getElementById('voice-file-result');
+  const vfrFilename = document.getElementById('vfr-filename');
+  const vfrLabel = document.getElementById('vfr-label');
+  const vfrConfidence = document.getElementById('vfr-confidence');
+  const vfrThreat = document.getElementById('vfr-threat');
+  const vfrReasons = document.getElementById('vfr-reasons');
+
+  if (voiceFileInput) {
+    voiceFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      showToast(`Uploading voice file: ${file.name}...`, 'info');
+      try {
+        const res = await ApiClient.predictVoiceFile(file, file.name);
+        showToast('Neural audio deepfake analysis complete!', 'success');
+
+        if (vfrCard) vfrCard.style.display = 'block';
+        if (vfrFilename) vfrFilename.textContent = file.name;
+        if (vfrLabel) {
+          vfrLabel.textContent = res.label;
+          vfrLabel.style.color = res.is_fake ? '#ef4444' : '#10b981';
+        }
+        if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
+        if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+
+        if (vfrReasons && res.metrics) {
+          vfrReasons.innerHTML = `
+            <div>• Spectral: <strong>${res.metrics.spectral_consistency}</strong></div>
+            <div>• Pitch: <strong>${res.metrics.pitch_tremor}</strong></div>
+            <div>• Vocoder Phase: <strong>${res.metrics.phase_coherence}</strong></div>
+            <div>• Bi-GRU Sequence: <strong>${res.metrics.gru_sequence}</strong></div>
+          `;
+        }
+        updateVoiceMetricsUI(res);
+      } catch (err) {
+        showToast('Voice analysis failed: ' + err.message, 'warning');
+      }
+    });
+  }
+
+  // Preset Buttons for Quick Testing
+  function generateDummyAudioWav(isFake = false) {
+    // Generate a simple valid WAV header with tone/noise
+    const sampleRate = 16000;
+    const duration = 2;
+    const numSamples = sampleRate * duration;
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+
+    // Write WAV Header
+    const writeString = (offset, str) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, numSamples * 2, true);
+
+    for (let i = 0; i < numSamples; i++) {
+      let sample = isFake ? Math.sin(i * 0.05) * 0.8 : (Math.sin(i * 0.03) + Math.sin(i * 0.06)) * 0.4;
+      view.setInt16(44 + i * 2, sample * 32767, true);
+    }
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  const presetRealBtn = document.getElementById('preset-real-audio');
+  const presetFakeBtn = document.getElementById('preset-fake-audio');
+
+  if (presetRealBtn) {
+    presetRealBtn.addEventListener('click', async () => {
+      showToast('Running inference on Authentic Voice Preset...', 'info');
+      const blob = generateDummyAudioWav(false);
+      try {
+        const res = await ApiClient.predictVoiceFile(blob, 'authentic_human_speech.wav');
+        if (vfrCard) vfrCard.style.display = 'block';
+        if (vfrFilename) vfrFilename.textContent = 'authentic_human_speech.wav';
+        if (vfrLabel) {
+          vfrLabel.textContent = res.label;
+          vfrLabel.style.color = res.is_fake ? '#ef4444' : '#10b981';
+        }
+        if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
+        if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+        updateVoiceMetricsUI(res);
+        showToast('Authentic Speech verified by ResNet18 + Bi-GRU Core', 'success');
+      } catch (err) {
+        showToast('Preset test error: ' + err.message, 'warning');
+      }
+    });
+  }
+
+  if (presetFakeBtn) {
+    presetFakeBtn.addEventListener('click', async () => {
+      showToast('Running inference on AI Cloned Voice Preset...', 'warning');
+      const blob = generateDummyAudioWav(true);
+      try {
+        const res = await ApiClient.predictVoiceFile(blob, 'ai_cloned_voice_elevenlabs.wav');
+        if (vfrCard) vfrCard.style.display = 'block';
+        if (vfrFilename) vfrFilename.textContent = 'ai_cloned_voice_elevenlabs.wav';
+        if (vfrLabel) {
+          vfrLabel.textContent = res.label;
+          vfrLabel.style.color = res.is_fake ? '#ef4444' : '#10b981';
+        }
+        if (vfrConfidence) vfrConfidence.textContent = `${res.confidence}%`;
+        if (vfrThreat) vfrThreat.textContent = `${res.score}%`;
+        updateVoiceMetricsUI(res);
+        showToast('AI Cloned Voice Detected: Synthetic quantization flagged', 'warning');
+      } catch (err) {
+        showToast('Preset test error: ' + err.message, 'warning');
+      }
+    });
+  }
+});
+

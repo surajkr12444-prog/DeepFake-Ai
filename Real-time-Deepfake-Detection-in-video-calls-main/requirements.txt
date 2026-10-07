@@ -1,0 +1,5 @@
+deepface
+opencv-python
+tensorflow==2.16.1
+numpy
+scipy

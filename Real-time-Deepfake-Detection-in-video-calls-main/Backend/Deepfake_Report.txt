@@ -1,0 +1,12 @@
+======================================================================
+DEEPSHIELD REAL-TIME DEEPFAKE DETECTION AUDIT REPORT
+Generated at: 2026-10-07 23:33:37
+Backend Core: FastAPI + OpenCV Vision Forensics (v6.5.0)
+======================================================================
+
+SUMMARY METRICS:
+- Total Surveillance Frames Audited : 1895
+- Authentic / Natural Frames        : 1647 (86.9%)
+- Suspicious / Deepfake Anomalies   : 248 (13.1%)
+- System Status                     : OPERATIONAL
+======================================================================
