@@ -2,16 +2,27 @@
 // Automatically derives REST and WebSocket URLs based on environment and protocol
 
 const Config = (() => {
+  const isFileProto = window.location.protocol === 'file:';
   const isHttps = window.location.protocol === 'https:';
   const restProto = isHttps ? 'https:' : 'http:';
   const wsProto = isHttps ? 'wss:' : 'ws:';
 
-  // If served directly from FastAPI server (default on port 8050)
-  const isSameOrigin = window.location.port === '8050' || window.location.port === '';
-  const defaultHost = isSameOrigin ? window.location.host : 'localhost:8050';
+  let API_BASE = '';
+  let WS_BASE = '';
 
-  const API_BASE = isSameOrigin ? '' : `${restProto}//${defaultHost}`;
-  const WS_BASE = `${wsProto}//${defaultHost}`;
+  if (isFileProto) {
+    // When opened directly as a local file (file:///...)
+    API_BASE = 'http://localhost:8050';
+    WS_BASE = 'ws://localhost:8050';
+  } else if (window.location.port === '8050') {
+    // When served directly by the FastAPI backend on port 8050
+    API_BASE = '';
+    WS_BASE = `${wsProto}//${window.location.host}`;
+  } else {
+    // When served from Live Server (e.g. port 5500, 3000, 8080)
+    API_BASE = 'http://localhost:8050';
+    WS_BASE = 'ws://localhost:8050';
+  }
 
   return {
     API_BASE,

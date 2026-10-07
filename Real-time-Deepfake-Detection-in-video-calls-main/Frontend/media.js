@@ -31,6 +31,13 @@ class MediaCaptureManager {
     // Reset previous states
     this.stopCapture();
 
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (window.location.protocol === 'file:') {
+        throw new Error('Camera & Mic access is restricted on file:// URLs by your browser. Please open http://localhost:8050');
+      }
+      throw new Error('Camera & Mic are not supported or blocked in this browser context. Please use Chrome/Edge on http://localhost:8050');
+    }
+
     let stream = null;
     let cameraAllowed = false;
     let micAllowed = false;

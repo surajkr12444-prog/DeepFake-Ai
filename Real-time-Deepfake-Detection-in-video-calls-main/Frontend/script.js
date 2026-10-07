@@ -62,8 +62,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     hudRedAlertTag: document.getElementById('hud-red-alert-tag'),
     videoFileInput: document.getElementById('video-file-input'),
     strictMode: document.getElementById('strict-mode'),
-    audioAlertToggle: document.getElementById('audio-alert-toggle')
+    audioAlertToggle: document.getElementById('audio-alert-toggle'),
+    fileProtocolWarning: document.getElementById('file-protocol-warning')
   };
+
+  // Check if page is accessed directly via file://
+  if (window.location.protocol === 'file:') {
+    if (elements.fileProtocolWarning) {
+      elements.fileProtocolWarning.style.display = 'flex';
+    }
+  }
 
   // 1. Toast Notification System
   window.showToast = function(message, type = 'info') {
@@ -500,6 +508,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function startVoiceMic() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (window.location.protocol === 'file:') {
+        showToast('Microphone access is blocked on file:// URLs. Please open http://localhost:8050', 'warning');
+        return;
+      }
+      showToast('Microphone is not supported in this browser context. Please open http://localhost:8050', 'warning');
+      return;
+    }
     try {
       voiceMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const AudioCtx = window.AudioContext || window.webkitAudioContext;

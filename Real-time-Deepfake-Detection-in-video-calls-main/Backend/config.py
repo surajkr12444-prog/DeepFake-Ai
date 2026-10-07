@@ -6,7 +6,7 @@ HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8050"))
 
 # Allowed CORS Origins (supports comma-separated list in env)
-_cors_env = os.getenv("CORS_ORIGINS", "http://localhost:8050,http://127.0.0.1:8050,http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000,http://127.0.0.1:3000")
+_cors_env = os.getenv("CORS_ORIGINS", "http://localhost:8050,http://127.0.0.1:8050,http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000,http://127.0.0.1:3000,null")
 CORS_ORIGINS: List[str] = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
 
 # File Paths
