@@ -770,15 +770,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 15. Sidebar Toggle
-  if (elements.sidebarToggle) {
-    elements.sidebarToggle.addEventListener('click', () => {
-      elements.sidebar.classList.toggle('open');
-    });
-  }
-
-
-
   // =========================================================================
   // 16. Multi-View Routing & Section Switcher Architecture
   // =========================================================================
@@ -850,14 +841,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Mobile / Tablet Navigation Drawer Controller
   function openMobileSidebar() {
-    if (elements.sidebar) elements.sidebar.classList.add('open');
-    if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.add('active');
+    if (elements.sidebar) {
+      elements.sidebar.classList.add('open');
+      elements.sidebar.setAttribute('aria-hidden', 'false');
+    }
+    if (elements.sidebarToggle) {
+      elements.sidebarToggle.classList.add('is-active');
+      elements.sidebarToggle.setAttribute('aria-expanded', 'true');
+    }
+    if (elements.sidebarBackdrop) {
+      elements.sidebarBackdrop.classList.add('active');
+    }
     document.body.classList.add('sidebar-drawer-open');
   }
 
   function closeMobileSidebar() {
-    if (elements.sidebar) elements.sidebar.classList.remove('open');
-    if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.remove('active');
+    if (elements.sidebar) {
+      elements.sidebar.classList.remove('open');
+      elements.sidebar.setAttribute('aria-hidden', 'true');
+    }
+    if (elements.sidebarToggle) {
+      elements.sidebarToggle.classList.remove('is-active');
+      elements.sidebarToggle.setAttribute('aria-expanded', 'false');
+    }
+    if (elements.sidebarBackdrop) {
+      elements.sidebarBackdrop.classList.remove('active');
+    }
     document.body.classList.remove('sidebar-drawer-open');
   }
 
@@ -886,7 +895,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (elements.sidebarBackdrop) {
-    elements.sidebarBackdrop.addEventListener('click', () => {
+    elements.sidebarBackdrop.addEventListener('click', (e) => {
+      e.preventDefault();
       closeMobileSidebar();
     });
   }
