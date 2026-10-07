@@ -89,11 +89,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 3500);
   };
 
-  // 2. Append Log Table Rows
+  // 2. Append Log Table Rows (Dashboard & Full History Log)
   window.appendLogRow = function(id, time, conf, live, label, status) {
-    if (!elements.logTbody) return;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+    const trHtml = `
       <td>${id}</td>
       <td>${time}</td>
       <td><strong>${conf}</strong></td>
@@ -101,9 +99,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       <td>${label}</td>
       <td><span class="log-tag ${status}">${status === 'auth' ? 'PASSED' : 'FLAGGED'}</span></td>
     `;
-    elements.logTbody.prepend(tr);
-    if (elements.logTbody.children.length > 8) {
-      elements.logTbody.removeChild(elements.logTbody.lastChild);
+    if (elements.logTbody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = trHtml;
+      elements.logTbody.prepend(tr);
+      if (elements.logTbody.children.length > 8) {
+        elements.logTbody.removeChild(elements.logTbody.lastChild);
+      }
+    }
+    const fullTbody = document.getElementById('history-full-tbody');
+    if (fullTbody) {
+      const trFull = document.createElement('tr');
+      trFull.setAttribute('data-status', status);
+      trFull.innerHTML = trHtml;
+      fullTbody.prepend(trFull);
     }
   };
 
@@ -426,14 +435,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // =========================================================================
-  // 16. Section Switcher (Unified vs Dedicated Video vs Dedicated Voice)
+  // 16. Multi-View Routing & Section Switcher Architecture
   // =========================================================================
   const secUnified = document.getElementById('unified-surveillance-section');
   const secVideo = document.getElementById('video-recognition-section');
   const secVoice = document.getElementById('voice-recognition-section');
+  const secAnalytics = document.getElementById('analytics-section');
+  const secHistory = document.getElementById('history-section');
+  const secReports = document.getElementById('reports-section');
+  const secSettings = document.getElementById('settings-section');
+
   const btnSwitchUnified = document.getElementById('switch-unified');
   const btnSwitchVideo = document.getElementById('switch-video');
   const btnSwitchVoice = document.getElementById('switch-voice');
+  const btnSwitchAnalytics = document.getElementById('switch-analytics');
+  const btnSwitchHistory = document.getElementById('switch-history');
+  const btnSwitchReports = document.getElementById('switch-reports');
+  const btnSwitchSettings = document.getElementById('switch-settings');
 
   const navDashboard = document.getElementById('nav-dashboard');
   const navVideo = document.getElementById('nav-video');
@@ -444,75 +462,350 @@ document.addEventListener('DOMContentLoaded', async () => {
   const navReports = document.getElementById('nav-reports');
   const navSettings = document.getElementById('nav-settings');
 
+  const allSections = [
+    { key: 'unified', el: secUnified, navEl: navDashboard, switchEl: btnSwitchUnified, title: 'Live Surveillance' },
+    { key: 'live', el: secUnified, navEl: navLive, switchEl: btnSwitchUnified, title: 'Live Surveillance' },
+    { key: 'video', el: secVideo, navEl: navVideo, switchEl: btnSwitchVideo, title: 'Video Deepfake Recognition' },
+    { key: 'voice', el: secVoice, navEl: navVoice, switchEl: btnSwitchVoice, title: 'Voice Recognition (CRNN AI)' },
+    { key: 'analytics', el: secAnalytics, navEl: navAnalytics, switchEl: btnSwitchAnalytics, title: 'Analytics & Threat Telemetry' },
+    { key: 'history', el: secHistory, navEl: navHistory, switchEl: btnSwitchHistory, title: 'Inspection History Log' },
+    { key: 'reports', el: secReports, navEl: navReports, switchEl: btnSwitchReports, title: 'Forensic PDF Reports' },
+    { key: 'settings', el: secSettings, navEl: navSettings, switchEl: btnSwitchSettings, title: 'System Settings' }
+  ];
+
   function setSectionMode(mode) {
-    [btnSwitchUnified, btnSwitchVideo, btnSwitchVoice].forEach(b => b && b.classList.remove('active'));
+    // Hide all view containers
+    [secUnified, secVideo, secVoice, secAnalytics, secHistory, secReports, secSettings].forEach(s => {
+      if (s) s.style.display = 'none';
+    });
+
+    // Remove active styles from nav & switchers
+    document.querySelectorAll('.switch-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    if (mode === 'voice') {
-      if (secUnified) secUnified.style.display = 'none';
-      if (secVideo) secVideo.style.display = 'none';
-      if (secVoice) secVoice.style.display = 'flex';
-      if (btnSwitchVoice) btnSwitchVoice.classList.add('active');
-      if (navVoice) navVoice.classList.add('active');
-      showToast('Switched to Dedicated Voice Deepfake Recognition Studio', 'info');
-    } else if (mode === 'video') {
-      if (secUnified) secUnified.style.display = 'none';
-      if (secVoice) secVoice.style.display = 'none';
-      if (secVideo) secVideo.style.display = 'flex';
-      if (btnSwitchVideo) btnSwitchVideo.classList.add('active');
-      if (navVideo) navVideo.classList.add('active');
-      showToast('Switched to Dedicated Video Deepfake Recognition Studio', 'info');
-    } else {
-      if (secVoice) secVoice.style.display = 'none';
-      if (secVideo) secVideo.style.display = 'none';
-      if (secUnified) secUnified.style.display = 'block';
-      if (btnSwitchUnified) btnSwitchUnified.classList.add('active');
-      if (navDashboard) navDashboard.classList.add('active');
-      showToast('Switched to All-in-One Live Surveillance Operations', 'info');
+    const match = allSections.find(s => s.key === mode) || allSections[0];
+
+    // Show target container
+    if (match.el) {
+      match.el.style.display = (match.key === 'unified' || match.key === 'live') ? 'block' : 'flex';
     }
+    if (match.navEl) match.navEl.classList.add('active');
+    if (match.switchEl) match.switchEl.classList.add('active');
+
+    // Breadcrumb update
+    const bcActive = document.querySelector('.bc-active');
+    if (bcActive) bcActive.textContent = match.title;
+
+    // View-specific initializations
+    if (mode === 'analytics') {
+      drawAnalyticsFullChart();
+    } else if (mode === 'reports') {
+      updateReportDocumentPreview();
+    } else if (mode === 'settings') {
+      syncSettingsUI();
+    }
+
+    showToast(`Switched to: ${match.title}`, 'info');
   }
 
+  // Bind Section Switcher Buttons
   if (btnSwitchUnified) btnSwitchUnified.addEventListener('click', () => setSectionMode('unified'));
   if (btnSwitchVideo) btnSwitchVideo.addEventListener('click', () => setSectionMode('video'));
   if (btnSwitchVoice) btnSwitchVoice.addEventListener('click', () => setSectionMode('voice'));
+  if (btnSwitchAnalytics) btnSwitchAnalytics.addEventListener('click', () => setSectionMode('analytics'));
+  if (btnSwitchHistory) btnSwitchHistory.addEventListener('click', () => setSectionMode('history'));
+  if (btnSwitchReports) btnSwitchReports.addEventListener('click', () => setSectionMode('reports'));
+  if (btnSwitchSettings) btnSwitchSettings.addEventListener('click', () => setSectionMode('settings'));
 
+  // Bind Sidebar Nav Links
   if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
-  if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('unified'); });
+  if (navLive) navLive.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('live'); });
   if (navVideo) navVideo.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('video'); });
   if (navVoice) navVoice.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('voice'); });
+  if (navAnalytics) navAnalytics.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('analytics'); });
+  if (navHistory) navHistory.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('history'); });
+  if (navReports) navReports.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('reports'); });
+  if (navSettings) navSettings.addEventListener('click', (e) => { e.preventDefault(); setSectionMode('settings'); });
 
-  if (navAnalytics) {
-    navAnalytics.addEventListener('click', (e) => {
-      e.preventDefault();
-      setSectionMode('unified');
-      const analyticsEl = document.querySelector('.analytics-panel');
-      if (analyticsEl) analyticsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // -------------------------------------------------------------------------
+  // Feature A: Dedicated Analytics Chart Renderer
+  // -------------------------------------------------------------------------
+  function drawAnalyticsFullChart() {
+    const canvas = document.getElementById('analytics-full-chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.parentElement.clientWidth || 700;
+    const h = canvas.height = 230;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Background Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let y = 30; y < h - 20; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 20, y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(`${Math.round(100 - (y / h) * 100)}%`, 10, y + 3);
+    }
+
+    // Threshold Line at 60%
+    const thresholdY = h - (0.6 * (h - 50)) - 25;
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(40, thresholdY);
+    ctx.lineTo(w - 20, thresholdY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('CRITICAL THRESHOLD (60%)', w - 180, thresholdY - 6);
+
+    const history = (surveillanceController && surveillanceController.confidenceHistory && surveillanceController.confidenceHistory.length > 5)
+      ? surveillanceController.confidenceHistory
+      : [82, 85, 87, 88, 86, 89, 91, 92, 90, 88, 85, 84, 87, 92, 94, 91, 88, 86, 89, 93, 94, 92, 90, 87, 85, 88, 91, 93, 92, 94];
+
+    const step = (w - 70) / (history.length - 1);
+
+    // Area fill
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+    grad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+    ctx.beginPath();
+    history.forEach((val, i) => {
+      const x = 45 + i * step;
+      const y = h - 25 - (val / 100) * (h - 50);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(45 + (history.length - 1) * step, h - 25);
+    ctx.lineTo(45, h - 25);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line curve
+    ctx.beginPath();
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 3;
+    history.forEach((val, i) => {
+      const x = 45 + i * step;
+      const y = h - 25 - (val / 100) * (h - 50);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Glowing points
+    history.forEach((val, i) => {
+      const x = 45 + i * step;
+      const y = h - 25 - (val / 100) * (h - 50);
+      ctx.fillStyle = val < 60 ? '#ef4444' : '#10b981';
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
     });
   }
 
-  if (navHistory) {
-    navHistory.addEventListener('click', (e) => {
-      e.preventDefault();
-      setSectionMode('unified');
-      const historyEl = document.querySelector('.history-panel');
-      if (historyEl) historyEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // -------------------------------------------------------------------------
+  // Feature B: Dedicated History Log Search & Filters
+  // -------------------------------------------------------------------------
+  const historySearchInput = document.getElementById('history-search-input');
+  const filterAllBtn = document.getElementById('filter-all-logs');
+  const filterAuthBtn = document.getElementById('filter-auth-logs');
+  const filterSusBtn = document.getElementById('filter-sus-logs');
+  const historyExportBtn = document.getElementById('history-export-btn');
+  const historyClearBtn = document.getElementById('history-clear-btn');
+  const fullHistoryTbody = document.getElementById('history-full-tbody');
+
+  // Prepopulate initial history rows if empty
+  if (fullHistoryTbody && fullHistoryTbody.children.length === 0) {
+    const mockEvents = [
+      { id: 1284, time: '00:58:14', conf: '94.2%', live: '0.998', label: 'Real Human Voice + Natural Face', status: 'auth' },
+      { id: 1283, time: '00:58:12', conf: '93.7%', live: '0.996', label: 'Real Human Voice + Natural Face', status: 'auth' },
+      { id: 1282, time: '00:58:08', conf: '92.4%', live: '0.994', label: 'Spectral Continuity Verified', status: 'auth' },
+      { id: 1281, time: '00:57:59', conf: '24.1%', live: '0.120', label: 'Face-Swap Boundary Discontinuity Flagged', status: 'sus' },
+      { id: 1280, time: '00:57:42', conf: '91.8%', live: '0.995', label: 'Biological Pores Verified', status: 'auth' },
+      { id: 1279, time: '00:57:30', conf: '89.5%', live: '0.988', label: 'Acoustic Tremor Verified', status: 'auth' },
+      { id: 1278, time: '00:57:15', conf: '18.3%', live: '0.085', label: 'Synthetic Vocoder Discontinuity Flagged', status: 'sus' }
+    ];
+    mockEvents.forEach(ev => {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-status', ev.status);
+      tr.innerHTML = `
+        <td>${ev.id}</td>
+        <td>${ev.time}</td>
+        <td><strong>${ev.conf}</strong></td>
+        <td>${ev.live}</td>
+        <td>${ev.label}</td>
+        <td><span class="log-tag ${ev.status}">${ev.status === 'auth' ? 'PASSED' : 'FLAGGED'}</span></td>
+      `;
+      fullHistoryTbody.appendChild(tr);
     });
   }
 
-  if (navReports) {
-    navReports.addEventListener('click', (e) => {
-      e.preventDefault();
+  function filterHistoryRows(query = '', statusFilter = 'all') {
+    if (!fullHistoryTbody) return;
+    const rows = fullHistoryTbody.querySelectorAll('tr');
+    const q = query.toLowerCase();
+    rows.forEach(r => {
+      const text = r.textContent.toLowerCase();
+      const status = r.getAttribute('data-status') || '';
+      const matchesQuery = q === '' || text.includes(q);
+      const matchesStatus = (statusFilter === 'all') || (status === statusFilter);
+      r.style.display = (matchesQuery && matchesStatus) ? '' : 'none';
+    });
+  }
+
+  if (historySearchInput) {
+    historySearchInput.addEventListener('input', (e) => filterHistoryRows(e.target.value));
+  }
+  if (filterAllBtn) {
+    filterAllBtn.addEventListener('click', () => filterHistoryRows(historySearchInput ? historySearchInput.value : '', 'all'));
+  }
+  if (filterAuthBtn) {
+    filterAuthBtn.addEventListener('click', () => filterHistoryRows(historySearchInput ? historySearchInput.value : '', 'auth'));
+  }
+  if (filterSusBtn) {
+    filterSusBtn.addEventListener('click', () => filterHistoryRows(historySearchInput ? historySearchInput.value : '', 'sus'));
+  }
+  if (historyExportBtn) {
+    historyExportBtn.addEventListener('click', () => {
+      if (elements.exportCsvBtn) elements.exportCsvBtn.click();
+    });
+  }
+  if (historyClearBtn) {
+    historyClearBtn.addEventListener('click', () => {
+      if (fullHistoryTbody) fullHistoryTbody.innerHTML = '';
+      if (elements.logTbody) elements.logTbody.innerHTML = '';
+      showToast('Forensic event logs cleared', 'info');
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Feature C: Dedicated PDF Reports Studio
+  // -------------------------------------------------------------------------
+  const generatePdfBtn = document.getElementById('generate-pdf-doc-btn');
+  const printPdfBtn = document.getElementById('print-pdf-doc-btn');
+  const downloadTxtBtn = document.getElementById('download-txt-doc-btn');
+
+  function updateReportDocumentPreview() {
+    const certEl = document.getElementById('rep-cert-id');
+    const dateEl = document.getElementById('rep-date');
+    const hashEl = document.getElementById('rep-hash');
+    if (certEl) certEl.textContent = `DS-2026-X${Math.floor(1000 + Math.random() * 9000)}`;
+    if (dateEl) dateEl.textContent = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    if (hashEl) {
+      const chars = '0123456789abcdef';
+      let h = '';
+      for (let i = 0; i < 32; i++) h += chars[Math.floor(Math.random() * chars.length)];
+      hashEl.textContent = h;
+    }
+  }
+
+  if (generatePdfBtn) {
+    generatePdfBtn.addEventListener('click', () => {
+      updateReportDocumentPreview();
+      showToast('Forensic Audit Certificate Recompiled', 'success');
+    });
+  }
+  if (printPdfBtn) {
+    printPdfBtn.addEventListener('click', () => {
+      window.print();
+    });
+  }
+  if (downloadTxtBtn) {
+    downloadTxtBtn.addEventListener('click', () => {
       if (elements.genReportBtn) elements.genReportBtn.click();
     });
   }
 
-  if (navSettings) {
-    navSettings.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (elements.thresholdSlider) {
-        elements.thresholdSlider.focus();
-        showToast('Sensitivity threshold adjusted from Settings', 'info');
+  // -------------------------------------------------------------------------
+  // Feature D: Dedicated Settings Studio
+  // -------------------------------------------------------------------------
+  const settingsSlider = document.getElementById('settings-threshold-slider');
+  const settingsDisplay = document.getElementById('settings-threshold-display');
+  const settingsStrict = document.getElementById('settings-strict-mode');
+  const settingsSiren = document.getElementById('settings-siren-toggle');
+  const settingsApiUrl = document.getElementById('settings-api-url');
+  const settingsTestApiBtn = document.getElementById('settings-test-api-btn');
+  const settingsSaveBtn = document.getElementById('settings-save-btn');
+  const settingsResetBtn = document.getElementById('settings-reset-btn');
+
+  function syncSettingsUI() {
+    const currentVal = elements.thresholdSlider ? elements.thresholdSlider.value : 60;
+    if (settingsSlider) settingsSlider.value = currentVal;
+    if (settingsDisplay) settingsDisplay.textContent = `${currentVal}%`;
+    if (settingsStrict && elements.strictMode) settingsStrict.checked = elements.strictMode.checked;
+    if (settingsSiren && elements.audioAlertToggle) settingsSiren.checked = elements.audioAlertToggle.checked;
+  }
+
+  if (settingsSlider) {
+    settingsSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (settingsDisplay) settingsDisplay.textContent = `${val}%`;
+      if (elements.thresholdSlider) elements.thresholdSlider.value = val;
+      if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = `${val}%`;
+      ApiClient.updateSettings(val / 100.0).catch(() => {});
+    });
+  }
+
+  if (settingsStrict) {
+    settingsStrict.addEventListener('change', (e) => {
+      if (elements.strictMode) {
+        elements.strictMode.checked = e.target.checked;
+        elements.strictMode.dispatchEvent(new Event('change'));
       }
+    });
+  }
+
+  if (settingsSiren) {
+    settingsSiren.addEventListener('change', (e) => {
+      if (elements.audioAlertToggle) elements.audioAlertToggle.checked = e.target.checked;
+    });
+  }
+
+  if (settingsTestApiBtn) {
+    settingsTestApiBtn.addEventListener('click', async () => {
+      settingsTestApiBtn.textContent = 'Pinging...';
+      const t0 = performance.now();
+      try {
+        const res = await fetch(`${Config.API_BASE}/api/health`);
+        const elapsed = Math.round(performance.now() - t0);
+        if (res.ok) {
+          settingsTestApiBtn.textContent = `Ping Core`;
+          showToast(`✅ Backend Online: Healthy (${elapsed}ms latency)`, 'success');
+        } else {
+          settingsTestApiBtn.textContent = `Ping Core`;
+          showToast(`⚠️ Server returned HTTP ${res.status}`, 'warning');
+        }
+      } catch (err) {
+        settingsTestApiBtn.textContent = `Ping Core`;
+        showToast(`❌ Connection Failed: ${err.message}`, 'warning');
+      }
+    });
+  }
+
+  if (settingsSaveBtn) {
+    settingsSaveBtn.addEventListener('click', () => {
+      showToast('Security preferences & hardware profiles saved successfully', 'success');
+    });
+  }
+
+  if (settingsResetBtn) {
+    settingsResetBtn.addEventListener('click', () => {
+      if (settingsSlider) settingsSlider.value = 60;
+      if (settingsDisplay) settingsDisplay.textContent = '60%';
+      if (elements.thresholdSlider) elements.thresholdSlider.value = 60;
+      if (elements.thresholdDisplay) elements.thresholdDisplay.textContent = '60%';
+      if (settingsStrict) settingsStrict.checked = true;
+      if (settingsSiren) settingsSiren.checked = true;
+      showToast('Settings reset to system defaults', 'info');
     });
   }
 

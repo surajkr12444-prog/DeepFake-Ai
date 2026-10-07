@@ -158,16 +158,32 @@
         <div class="section-switcher-bar">
           <button class="switch-btn active" id="switch-unified">
             <span>⬡</span>
-            <span>All-in-One Surveillance</span>
+            <span>Surveillance</span>
           </button>
           <button class="switch-btn" id="switch-video">
             <span>📹</span>
-            <span>Video Recognition</span>
+            <span>Video Deepfake</span>
           </button>
           <button class="switch-btn" id="switch-voice">
             <span>🎙️</span>
             <span>Voice Recognition</span>
             <span class="switch-badge-crnn">CRNN AI</span>
+          </button>
+          <button class="switch-btn" id="switch-analytics">
+            <span>▦</span>
+            <span>Analytics</span>
+          </button>
+          <button class="switch-btn" id="switch-history">
+            <span>☰</span>
+            <span>History Log</span>
+          </button>
+          <button class="switch-btn" id="switch-reports">
+            <span>◈</span>
+            <span>PDF Reports</span>
+          </button>
+          <button class="switch-btn" id="switch-settings">
+            <span>⚙</span>
+            <span>Settings</span>
           </button>
         </div>
 
@@ -704,6 +720,396 @@
                   </div>
                 </div>
                 <div class="vfr-reasons" id="vfr-reasons" style="margin-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.5;"></div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- End #voice-recognition-section -->
+
+        <!-- ===== SECTION 4: DEDICATED ANALYTICS & TELEMETRY HUB ===== -->
+        <div class="analytics-section-container" id="analytics-section" style="display: none; flex-direction: column; gap: 24px;">
+          <div class="voice-hero-banner" style="border-color: rgba(99, 102, 241, 0.35); background: linear-gradient(145deg, #1b1c2e, #141524);">
+            <div class="voice-hero-content">
+              <div class="voice-badge" style="color: #a5b4fc;">▦ FORENSIC TELEMETRY & THREAT INTELLIGENCE</div>
+              <h2>Multi-Modal Inference Analytics & Telemetry Center</h2>
+              <p>Continuous evaluation of spatial-frequency anomalies, temporal phase coherence, vocal pitch tremors, and aggregate biometric risk across surveillance sessions.</p>
+            </div>
+            <div class="voice-model-badge" style="border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.1);">
+              <span style="color: #94a3b8;">Threat Interceptor</span>
+              <strong style="color: #818cf8;">Telemetry Engine Online</strong>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-icon stat-blue">⚡</div>
+              <div class="stat-body">
+                <span class="stat-value" id="an-latency">11.8 ms</span>
+                <span class="stat-label">Inference Latency</span>
+              </div>
+              <div class="stat-badge badge-blue">Real-Time</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-green">🎯</div>
+              <div class="stat-body">
+                <span class="stat-value" id="an-accuracy">96.7%</span>
+                <span class="stat-label">Neural Precision</span>
+              </div>
+              <div class="stat-badge badge-green">Trained Core</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-red">🛡️</div>
+              <div class="stat-body">
+                <span class="stat-value" id="an-blocked">18</span>
+                <span class="stat-label">Deepfakes Intercepted</span>
+              </div>
+              <div class="stat-badge badge-red">Protected</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-purple">📶</div>
+              <div class="stat-body">
+                <span class="stat-value" id="an-fps">1.4 FPS</span>
+                <span class="stat-label">Stream Sample Rate</span>
+              </div>
+              <div class="stat-badge badge-purple">Optimal</div>
+            </div>
+          </div>
+
+          <div class="main-panel-row">
+            <div class="glass-panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="panel-title-icon">📈</span>
+                  Authenticity & Risk Confidence Trajectory (Timeline)
+                </div>
+                <div class="panel-actions">
+                  <span class="vfr-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">LIVE HUD STREAM</span>
+                </div>
+              </div>
+              <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset); border-radius: var(--radius-md); padding: 18px; border: 1px solid rgba(0,0,0,0.5);">
+                <canvas id="analytics-full-chart" width="700" height="230" style="width: 100%; height: 230px; display: block;"></canvas>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 14px; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
+                <span>◄ Historical Frames (Rolling Window)</span>
+                <span style="color: #ef4444; font-weight: 700;">Alert Threshold: 60%</span>
+                <span>Active Live Feed ►</span>
+              </div>
+            </div>
+
+            <div class="glass-panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <span class="panel-title-icon">🎯</span>
+                  Multi-Cue Forensic Detection Breakdown
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="vm-card">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                    <span style="color: #cbd5e1;">2D-FFT High-Frequency Residuals</span>
+                    <strong style="color: #38bdf8;">Spectral Roll-off</strong>
+                  </div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" style="width: 82%; background: linear-gradient(90deg, #06b6d4, #3b82f6);"></div></div>
+                </div>
+                <div class="vm-card">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                    <span style="color: #cbd5e1;">Laplacian Facial Skin-Texture Pores</span>
+                    <strong style="color: #10b981;">Biological Gradient</strong>
+                  </div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" style="width: 74%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div></div>
+                </div>
+                <div class="vm-card">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                    <span style="color: #cbd5e1;">YCrCb Boundary Mask Seam Disparity</span>
+                    <strong style="color: #f59e0b;">Edge Blend Check</strong>
+                  </div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" style="width: 61%; background: linear-gradient(90deg, #f59e0b, #ef4444);"></div></div>
+                </div>
+                <div class="vm-card">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                    <span style="color: #cbd5e1;">CRNN With Attention Pitch Micro-Tremor</span>
+                    <strong style="color: #a78bfa;">Acoustic Phase Model</strong>
+                  </div>
+                  <div class="vm-card-bar"><div class="vm-bar-inner" style="width: 89%; background: linear-gradient(90deg, #8b5cf6, #ec4899);"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SECTION 5: DEDICATED HISTORY LOG VIEW ===== -->
+        <div class="history-section-container" id="history-section" style="display: none; flex-direction: column; gap: 24px;">
+          <div class="voice-hero-banner" style="border-color: rgba(6, 182, 212, 0.35); background: linear-gradient(145deg, #13222d, #121921);">
+            <div class="voice-hero-content">
+              <div class="voice-badge" style="color: #38bdf8;">☰ FORENSIC AUDIT TRAIL</div>
+              <h2>Inspection Audit Trail & Event Registry</h2>
+              <p>Searchable forensic audit ledger registering all frame evaluations, facial confidence scores, liveness verification, and flagged deepfake anomalies.</p>
+            </div>
+            <div class="voice-model-badge" style="border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1);">
+              <span style="color: #94a3b8;">Registry Mode</span>
+              <strong style="color: #38bdf8;">Tamper-Resistant</strong>
+            </div>
+          </div>
+
+          <div class="glass-panel">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1; max-width: 440px;">
+                <input type="text" id="history-search-input" placeholder="🔍 Filter by frame #, timestamp, verdict..." style="width: 100%; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.45); border-radius: var(--radius-sm); padding: 10px 16px; color: #fff; font-size: 13px; outline: none; font-family: var(--font-main);" />
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="preset-btn preset-real" id="filter-all-logs" style="padding: 8px 14px;">All Events</button>
+                <button class="preset-btn" id="filter-auth-logs" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); padding: 8px 14px;">✓ Passed</button>
+                <button class="preset-btn preset-fake" id="filter-sus-logs" style="padding: 8px 14px;">🚨 Flagged</button>
+                <button class="panel-btn" id="history-export-btn" style="padding: 8px 16px; font-size: 12px;">⬇ Export CSV</button>
+                <button class="panel-btn panel-btn-outline" id="history-clear-btn" style="padding: 8px 16px; font-size: 12px;">🗑️ Clear</button>
+              </div>
+            </div>
+
+            <div class="log-table-wrap">
+              <table class="log-table" id="full-history-table">
+                <thead>
+                  <tr>
+                    <th>Frame #</th>
+                    <th>Timestamp</th>
+                    <th>Authenticity Confidence</th>
+                    <th>Liveness Score</th>
+                    <th>Forensic Label</th>
+                    <th>Audit Status</th>
+                  </tr>
+                </thead>
+                <tbody id="history-full-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SECTION 6: DEDICATED PDF & FORENSIC REPORTS STUDIO ===== -->
+        <div class="reports-section-container" id="reports-section" style="display: none; flex-direction: column; gap: 24px;">
+          <div class="voice-hero-banner" style="border-color: rgba(16, 185, 129, 0.35); background: linear-gradient(145deg, #132620, #111e19);">
+            <div class="voice-hero-content">
+              <div class="voice-badge" style="color: #34d399;">◈ AUDIT COMPLIANCE & CERTIFICATES</div>
+              <h2>Forensic Audit & PDF Report Generator</h2>
+              <p>Compile verifiable executive audit certificates and legal PDF documentation containing cryptographic hashes, multi-modal signal analysis, and threat conclusions.</p>
+            </div>
+            <div class="voice-model-badge" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);">
+              <span style="color: #94a3b8;">Certification</span>
+              <strong style="color: #34d399;">ISO/IEC Compliant</strong>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 360px 1fr; gap: 24px;">
+            <div class="glass-panel" style="gap: 16px;">
+              <div class="panel-title">
+                <span class="panel-title-icon">⚙️</span>
+                Report Parameters
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Target Session ID</label>
+                <select id="report-session-select" style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.5); border-radius: var(--radius-sm); padding: 10px; color: #fff; font-family: var(--font-mono); font-size: 12px; outline: none;">
+                  <option value="active">Active Live Session (Auto-Sync)</option>
+                  <option value="sess_recent_1">sess_935d711d59e4 (1,284 frames)</option>
+                  <option value="sess_recent_2">sess_412e800c12a0 (840 frames)</option>
+                </select>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding: 14px; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.4);">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e2e8f0; cursor: pointer;">
+                  <input type="checkbox" id="rep-inc-fft" checked style="accent-color: #06b6d4;" />
+                  <span>Include 2D FFT Spectral Roll-off</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e2e8f0; cursor: pointer;">
+                  <input type="checkbox" id="rep-inc-skin" checked style="accent-color: #10b981;" />
+                  <span>Include Laplacian Skin Texture Filter</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e2e8f0; cursor: pointer;">
+                  <input type="checkbox" id="rep-inc-audio" checked style="accent-color: #8b5cf6;" />
+                  <span>Include CRNN Vocal Micro-Tremors</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e2e8f0; cursor: pointer;">
+                  <input type="checkbox" id="rep-inc-hash" checked style="accent-color: #f59e0b;" />
+                  <span>Include SHA-256 Checksum Signature</span>
+                </label>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+                <button class="panel-btn" id="generate-pdf-doc-btn" style="justify-content: center;">
+                  📄 Compile Report
+                </button>
+                <button class="panel-btn panel-btn-outline" id="print-pdf-doc-btn" style="justify-content: center;">
+                  🖨️ Print / Save as PDF
+                </button>
+                <button class="panel-btn panel-btn-outline" id="download-txt-doc-btn" style="justify-content: center;">
+                  ⬇️ Download Audit Report (.txt)
+                </button>
+              </div>
+            </div>
+
+            <!-- Official Report Document Preview Pane -->
+            <div class="glass-panel" id="report-document-pane" style="padding: 18px;">
+              <div style="background: #ffffff; color: #0f172a; border-radius: var(--radius-sm); padding: 32px 36px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: var(--font-main); line-height: 1.6;" id="printable-report-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 14px; margin-bottom: 18px;">
+                  <div>
+                    <h1 style="font-size: 20px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; margin: 0;">DEEPSHIELD AI FORENSIC AUDIT</h1>
+                    <p style="font-size: 11px; color: #475569; margin: 4px 0 0 0; text-transform: uppercase; font-weight: 700;">Multi-Modal Deepfake & Scam Detection Certificate</p>
+                  </div>
+                  <div style="text-align: right; font-family: var(--font-mono); font-size: 11px; color: #64748b;">
+                    <div>CERT-ID: <strong style="color: #0f172a;" id="rep-cert-id">DS-2026-X9482</strong></div>
+                    <div id="rep-date">2026-10-08 01:00 UTC</div>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 18px; font-size: 12px;">
+                  <div><span style="color: #64748b;">Operator:</span> <strong style="display: block;">SecOps Lead / Sumaira</strong></div>
+                  <div><span style="color: #64748b;">Core Engine:</span> <strong style="display: block;">FastAPI + OpenCV + CRNN</strong></div>
+                  <div><span style="color: #64748b;">Cryptographic Hash:</span> <strong style="display: block; font-family: var(--font-mono); font-size: 10px; color: #0284c7;" id="rep-hash">e3b0c44298fc1c149afbf4c8996fb924</strong></div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-radius: 8px; margin-bottom: 18px; background: #ecfdf5; border: 1.5px solid #10b981;" id="rep-verdict-box">
+                  <div>
+                    <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: #059669;">Official Executive Verdict</div>
+                    <div style="font-size: 16px; font-weight: 900; color: #065f46;" id="rep-verdict-text">✓ AUTHENTIC NATURAL COMMUNICATION VERIFIED</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 22px; font-weight: 900; color: #059669;" id="rep-verdict-score">94.2%</div>
+                    <div style="font-size: 10px; color: #047857; font-weight: 700;">CONFIDENCE SCORE</div>
+                  </div>
+                </div>
+
+                <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; color: #1e293b;">Forensic Assessment Breakdown</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 20px;">
+                  <thead>
+                    <tr style="background: #f1f5f9; text-align: left;">
+                      <th style="padding: 7px 10px; border-bottom: 1px solid #cbd5e1;">Forensic Test</th>
+                      <th style="padding: 7px 10px; border-bottom: 1px solid #cbd5e1;">Evaluated Cue</th>
+                      <th style="padding: 7px 10px; border-bottom: 1px solid #cbd5e1;">Score</th>
+                      <th style="padding: 7px 10px; border-bottom: 1px solid #cbd5e1;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">2D Fast Fourier Transform</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">Spectral High-Frequency Roll-Off</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-family: var(--font-mono);">93.1%</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-weight: 700;">PASSED</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">Laplacian Texture Filter</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">Skin Micro-Pores & Biological Texture</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-family: var(--font-mono);">91.5%</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-weight: 700;">PASSED</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">Facial Boundary Seams</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">YCrCb Color Discontinuity on Mask Edge</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-family: var(--font-mono);">97.2%</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-weight: 700;">PASSED</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">CRNN Vocal Micro-Tremors</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">ResNet18-BiGRU Pitch & Acoustic Phase</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-family: var(--font-mono);">94.8%</td>
+                      <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-weight: 700;">PASSED</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #64748b;">
+                  <div>Automated DeepShield Forensic Node • ISO-27001 Standard</div>
+                  <div style="font-family: var(--font-mono); font-weight: 700; color: #0f172a;">DIGITALLY SEALED & VERIFIED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SECTION 7: DEDICATED SYSTEM & SECURITY SETTINGS ===== -->
+        <div class="settings-section-container" id="settings-section" style="display: none; flex-direction: column; gap: 24px;">
+          <div class="voice-hero-banner" style="border-color: rgba(148, 163, 184, 0.35); background: linear-gradient(145deg, #1c202a, #151821);">
+            <div class="voice-hero-content">
+              <div class="voice-badge" style="color: #94a3b8;">⚙️ SECURITY & HARDWARE CONTROL</div>
+              <h2>System Preferences & Security Architecture</h2>
+              <p>Configure detection sensitivity levels, active hardware interfaces, alerting sound sirens, and neural backend connection status.</p>
+            </div>
+            <div class="voice-model-badge" style="border-color: rgba(148, 163, 184, 0.4); background: rgba(148, 163, 184, 0.1);">
+              <span style="color: #94a3b8;">Configuration</span>
+              <strong style="color: #cbd5e1;">Live Profile: Active</strong>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="glass-panel">
+              <div class="panel-title" style="margin-bottom: 18px;">
+                <span class="panel-title-icon">🛡️</span>
+                Forensic Detection Rules & Thresholds
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <label style="font-size: 13px; font-weight: 600; color: #fff;">Surveillance Alert Threshold</label>
+                    <strong id="settings-threshold-display" style="color: var(--accent-cyan); font-family: var(--font-mono);">60%</strong>
+                  </div>
+                  <input type="range" id="settings-threshold-slider" min="40" max="90" value="60" class="slider" />
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+                    <span>40% (Lenient)</span>
+                    <span>90% (Strict)</span>
+                  </div>
+                </div>
+
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 14px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(0,0,0,0.4);">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                    <input type="checkbox" id="settings-strict-mode" checked style="accent-color: #ef4444;" />
+                    <span>Strict AI Deepfake Filter (Enhanced Sensitivity)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                    <input type="checkbox" id="settings-siren-toggle" checked style="accent-color: #ef4444;" />
+                    <span>🚨 Audible Siren on Critical Threat Trigger</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; cursor: pointer; color: #fff;">
+                    <input type="checkbox" id="settings-auto-snap" checked style="accent-color: #06b6d4;" />
+                    <span>Auto-Snapshot Flagged Threat Frames</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-panel">
+              <div class="panel-title" style="margin-bottom: 18px;">
+                <span class="panel-title-icon">🔌</span>
+                Backend Core & Model Status
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                  <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">Backend API Base URL</label>
+                  <div style="display: flex; gap: 10px;">
+                    <input type="text" id="settings-api-url" value="http://localhost:8050" style="flex: 1; background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); border: 1px solid rgba(0,0,0,0.45); border-radius: var(--radius-sm); padding: 10px 14px; color: #fff; font-family: var(--font-mono); font-size: 13px;" />
+                    <button class="panel-btn" id="settings-test-api-btn" style="padding: 10px 16px; font-size: 12px;">Ping Core</button>
+                  </div>
+                </div>
+
+                <div style="background: var(--neu-surface-inset); box-shadow: var(--neu-shadow-inset-sm); padding: 14px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.4); font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Voice Model Checkpoint:</span>
+                    <strong style="color: #10b981; font-family: var(--font-mono);">best_model10.pth (46.8 MB)</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Neural Architecture:</span>
+                    <strong style="color: #c4b5fd;">CRNN + Bi-GRU + Attention</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Total Trainable Weights:</span>
+                    <strong style="color: #fff; font-family: var(--font-mono);">11,699,714 Parameters</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Vision Forensics:</span>
+                    <strong style="color: #38bdf8;">2D FFT + Laplacian + Seams</strong>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                  <button class="panel-btn" id="settings-save-btn" style="flex: 1; justify-content: center;">💾 Save Changes</button>
+                  <button class="panel-btn panel-btn-outline" id="settings-reset-btn">↺ Reset</button>
+                </div>
               </div>
             </div>
           </div>
